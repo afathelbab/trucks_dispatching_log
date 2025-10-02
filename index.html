@@ -204,10 +204,15 @@
 
         <!-- Data Log Table -->
         <div class="mt-12">
-            <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center">
-                <svg class="w-6 h-6 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                Dispatch Log
-            </h2>
+            <div class="flex justify-between items-center mb-4">
+                 <h2 class="text-2xl font-bold text-gray-900 flex items-center">
+                    <svg class="w-6 h-6 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Dispatch Log
+                </h2>
+                <button id="generate-data-btn" class="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition">
+                    Generate Test Data
+                </button>
+            </div>
             <div class="bg-white rounded-2xl shadow-lg p-4 md:p-6 table-container">
                 <table class="w-full text-left">
                     <thead class="bg-gray-100">
@@ -904,6 +909,54 @@
             resetForm();
         });
 
+        function generateTestData() {
+            if (!confirm("Are you sure you want to replace all existing data with test data? This cannot be undone.")) {
+                return;
+            }
+
+            const testLog = [];
+            const shifts = ["Day Shift", "Night Shift - Before Midnight", "Night Shift After Midnight"];
+            const statuses = ["Dispatched", "Verified"];
+            const contractorNames = Object.keys(data.contractors);
+
+            for (let i = 0; i < 75; i++) {
+                const randomContractorName = contractorNames[Math.floor(Math.random() * contractorNames.length)];
+                const contractorData = data.contractors[randomContractorName];
+                
+                const randomTruck = contractorData.trucks[Math.floor(Math.random() * contractorData.trucks.length)];
+                const randomDestination = contractorData.destinations[Math.floor(Math.random() * contractorData.destinations.length)];
+                const randomSource = data.sources[Math.floor(Math.random() * data.sources.length)];
+                const randomShift = shifts[Math.floor(Math.random() * shifts.length)];
+                const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+
+                const date = new Date();
+                date.setDate(date.getDate() - Math.floor(Math.random() * 30)); // Random date in the last 30 days
+                
+                let capacity = randomTruck.capacity;
+                if (randomContractorName.includes("Petrotreatment")) {
+                    capacity = Math.floor(Math.random() * (60 - 40 + 1)) + 40; // Random capacity for Petrotreatment
+                }
+
+                testLog.push({
+                    id: Date.now() + i,
+                    date: date.toLocaleDateString('en-GB'),
+                    contractor: randomContractorName,
+                    license: randomTruck.license,
+                    capacity: capacity,
+                    source: randomSource,
+                    destination: randomDestination,
+                    shift: randomShift,
+                    status: randomStatus
+                });
+            }
+
+            dispatchLog = testLog;
+            localStorage.setItem('dispatchLog', JSON.stringify(dispatchLog));
+            renderTable();
+            alert("Test data has been generated.");
+        }
+
+
         function setTodayDate() {
             const today = new Date();
             const year = today.getFullYear();
@@ -924,10 +977,9 @@
             updateStepIndicator(1);
             setTodayDate();
         };
+
+        document.getElementById('generate-data-btn').addEventListener('click', generateTestData);
     </script>
 </body>
 </html>
-
-
-
 
