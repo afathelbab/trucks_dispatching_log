@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truck Dispatch Log</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        .form-section {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+        .hidden-section {
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+            position: absolute;
+        }
+        .visible-section {
+            opacity: 1;
+            transform: translateY(0);
+            position: static;
+        }
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+         /* Custom scrollbar */
+        .table-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-5xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-gray-900">Truck Dispatch Data Entry</h1>
+            <p class="text-gray-600 mt-2">A streamlined process for logging truck movements.</p>
+        </header>
+
+        <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+            <!-- Step Indicators -->
+            <div class="flex items-center justify-center mb-8 space-x-4">
+                <div id="step-1-indicator" class="step-indicator flex flex-col items-center space-y-2">
+                    <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">1</div>
+                    <p class="text-sm text-blue-600 font-semibold">Truck Details</p>
+                </div>
+                <div class="flex-1 h-1 bg-gray-200 rounded-full"></div>
+                <div id="step-2-indicator" class="step-indicator flex flex-col items-center space-y-2 text-gray-400">
+                    <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold">2</div>
+                    <p class="text-sm font-semibold">Journey</p>
+                </div>
+                <div class="flex-1 h-1 bg-gray-200 rounded-full"></div>
+                <div id="step-3-indicator" class="step-indicator flex flex-col items-center space-y-2 text-gray-400">
+                     <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold">3</div>
+                    <p class="text-sm font-semibold">Time & Submit</p>
+                </div>
+            </div>
+
+            <div class="relative">
+                <!-- Step 1: Contractor and Truck Selection -->
+                <div id="step-1" class="form-section visible-section">
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="md:col-span-1 flex flex-col items-center justify-center text-center p-4">
+                            <svg class="w-24 h-24 text-blue-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                             <h3 class="font-semibold text-lg">Select Contractor</h3>
+                             <p class="text-sm text-gray-500">Choose the truck's contracting company.</p>
+                        </div>
+                        <div class="md:col-span-2 space-y-4">
+                            <div>
+                                <label for="contractor" class="block text-sm font-medium text-gray-700 mb-1">Contractor</label>
+                                <select id="contractor" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                                    <option value="">-- Select a Contractor --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="license" class="block text-sm font-medium text-gray-700 mb-1">License Number</label>
+                                <select id="license" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" disabled>
+                                    <option value="">-- Select License Number --</option>
+                                </select>
+                            </div>
+                             <div>
+                                <label for="capacity" class="block text-sm font-medium text-gray-700 mb-1">Capacity (m³)</label>
+                                <input type="number" id="capacity" class="w-full p-3 bg-gray-200 border-gray-300 rounded-lg" readonly>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="mt-8 text-right">
+                        <button onclick="nextStep(2)" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition">Next &rarr;</button>
+                    </div>
+                </div>
+
+                <!-- Step 2: Source and Destination -->
+                <div id="step-2" class="form-section hidden-section">
+                     <div class="grid md:grid-cols-3 gap-6">
+                        <div class="md:col-span-1 flex flex-col items-center justify-center text-center p-4">
+                            <svg class="w-24 h-24 text-blue-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 16.382V5.618a1 1 0 00-1.447-.894L15 7m-6 10h6"></path></svg>
+                             <h3 class="font-semibold text-lg">Select Journey</h3>
+                             <p class="text-sm text-gray-500">Define the loading source and final destination.</p>
+                        </div>
+                        <div class="md:col-span-2 space-y-4">
+                            <div>
+                                <label for="source" class="block text-sm font-medium text-gray-700 mb-1">Source</label>
+                                <select id="source" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                                    <option value="">-- Select a Source --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="destination" class="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+                                <select id="destination" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" disabled>
+                                    <option value="">-- Select a Destination --</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-8 flex justify-between">
+                        <button onclick="prevStep(1)" class="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition">&larr; Back</button>
+                        <button onclick="nextStep(3)" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition">Next &rarr;</button>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Shift Time and Submission -->
+                <div id="step-3" class="form-section hidden-section">
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="md:col-span-1 flex flex-col items-center justify-center text-center p-4">
+                            <svg class="w-24 h-24 text-blue-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                             <h3 class="font-semibold text-lg">Select Shift Time</h3>
+                             <p class="text-sm text-gray-500">Choose the time of dispatch.</p>
+                        </div>
+                         <div class="md:col-span-2 space-y-4">
+                            <div>
+                                <label for="shift" class="block text-sm font-medium text-gray-700 mb-1">Shift Time</label>
+                                <select id="shift" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                                    <option value="">-- Select Shift Time --</option>
+                                    <option value="Day Shift">Day Shift</option>
+                                    <option value="Night Shift - Before Midnight">Night Shift - Before Midnight</option>
+                                    <option value="Night Shift After Midnight">Night Shift After Midnight</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="mt-8 flex justify-between">
+                        <button onclick="prevStep(2)" class="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition">&larr; Back</button>
+                        <button id="submit-btn" class="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            Submit Entry
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reporting Section -->
+        <div class="mt-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Generate Report
+            </h2>
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <div class="w-full sm:w-auto flex-grow">
+                        <label for="report-period" class="block text-sm font-medium text-gray-700 mb-1">Select Period</label>
+                        <select id="report-period" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="biweekly">Bi-Weekly (Last 14 days)</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                    <button id="generate-report-btn" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition self-end">
+                        Generate
+                    </button>
+                </div>
+                <div id="report-output" class="mt-8 hidden">
+                    <!-- Report will be injected here -->
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Data Log Table -->
+        <div class="mt-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Dispatch Log
+            </h2>
+            <div class="bg-white rounded-2xl shadow-lg p-4 md:p-6 table-container">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="p-3 text-sm font-semibold text-gray-600 rounded-l-lg">Date</th>
+                            <th class="p-3 text-sm font-semibold text-gray-600">Contractor</th>
+                            <th class="p-3 text-sm font-semibold text-gray-600">License</th>
+                            <th class="p-3 text-sm font-semibold text-gray-600">Capacity (m³)</th>
+                            <th class="p-3 text-sm font-semibold text-gray-600">Source</th>
+                            <th class="p-3 text-sm font-semibold text-gray-600">Destination</th>
+                            <th class="p-3 text-sm font-semibold text-gray-600">Shift</th>
+                            <th class="p-3 text-sm font-semibold text-gray-600 rounded-r-lg">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="log-table-body">
+                        <!-- Rows will be inserted here -->
+                    </tbody>
+                </table>
+                 <div id="empty-log-message" class="text-center py-12 text-gray-500">
+                    <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    <p class="font-semibold">No entries yet.</p>
+                    <p class="text-sm">Submitted entries will appear here.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const data = {
+            contractors: {
+                "Elsamy": {
+                    trucks: [
+                        { license: "6141-7523", capacity: 58 }, { license: "6536-8561", capacity: 49 },
+                        { license: "6141-8512", capacity: 58 }, { license: "3463-3921", capacity: 56 },
+                        { license: "8825-9471", capacity: 50 }, { license: "4175-6817", capacity: 49 },
+                        { license: "9856-1795", capacity: 53 }, { license: "1277-9734", capacity: 50 },
+                        { license: "8385-8789", capacity: 51 }, { license: "8348-9212", capacity: 48 },
+                        { license: "2712-6893", capacity: 59 }, { license: "3845-1764", capacity: 55 },
+                        { license: "6478-1368", capacity: 50 }, { license: "5312-9793", capacity: 57 },
+                        { license: "1831-3734", capacity: 50 }, { license: "7956-2616", capacity: 59 },
+                        { license: "3735-3453", capacity: 50 }, { license: "5939-1187", capacity: 48 },
+                        { license: "8241-7579", capacity: 52 }, { license: "5715-3526", capacity: 50 },
+                        { license: "1286-9472", capacity: 49 }, { license: "6479-9735", capacity: 50 },
+                        { license: "7978-5474", capacity: 50 }, { license: "4846-9165", capacity: 50 },
+                        { license: "5945-2757", capacity: 50 }, { license: "1752-8471", capacity: 49 },
+                        { license: "4678-7176", capacity: 51 }, { license: "9471-1285", capacity: 48 }
+                    ],
+                    destinations: ["Abu Madi", "Elaalamya", "Eldawlya", "Ultra Extract", "Unico"]
+                },
+                "Elbassyouny": {
+                    trucks: [
+                        { license: "1859-2397", capacity: 49 }, { license: "4327-9482", capacity: 51 },
+                        { license: "1892-5291", capacity: 61 }, { license: "4869-2487", capacity: 52 },
+                        { license: "2459-2638", capacity: 53 }, { license: "1739-2749", capacity: 52 },
+                        { license: "3129-1835", capacity: 57 }, { license: "1524-8913", capacity: 50 },
+                        { license: "3467-1429", capacity: 55 }, { license: "3128-8237", capacity: 51 },
+                        { license: "2518-9576", capacity: 52 }, { license: "5812-5164", capacity: 52 },
+                        { license: "9583-5368", capacity: 44 }, { license: "5397-1876", capacity: 55 },
+                        { license: "9568-5746", capacity: 48 }
+                    ],
+                    destinations: ["Abu Madi", "Elaalamya"]
+                },
+                "Petrotreatment": {
+                    trucks: [
+                        { license: "1954-5398" },
+                        { license: "6359-4932" },
+                        { license: "1932-5417" }
+                    ],
+                    destinations: ["Unico"]
+                }
+            },
+            sources: [
+                "Off-spec Condensate Tank",
+                "Rich MEG Tank",
+                "Open Drains - P01 Area",
+                "Open Drain - S01 Area",
+                "Inspection Tank"
+            ]
+        };
+
+        const contractorSelect = document.getElementById('contractor');
+        const licenseSelect = document.getElementById('license');
+        const capacityInput = document.getElementById('capacity');
+        const sourceSelect = document.getElementById('source');
+        const destinationSelect = document.getElementById('destination');
+        const shiftSelect = document.getElementById('shift');
+        const submitBtn = document.getElementById('submit-btn');
+        const logTableBody = document.getElementById('log-table-body');
+        const emptyLogMessage = document.getElementById('empty-log-message');
+        const generateReportBtn = document.getElementById('generate-report-btn');
+        const reportPeriodSelect = document.getElementById('report-period');
+        const reportOutput = document.getElementById('report-output');
+
+        let currentStep = 1;
+        let dispatchLog = [];
+        let reportCharts = {};
+
+        function populateContractors() {
+            const contractors = Object.keys(data.contractors);
+            contractors.forEach(c => {
+                const option = new Option(c, c);
+                contractorSelect.add(option);
+            });
+        }
+        
+        function populateSources() {
+            data.sources.forEach(s => {
+                const option = new Option(s, s);
+                sourceSelect.add(option);
+            });
+        }
+
+        function updateStepIndicator(step) {
+            for (let i = 1; i <= 3; i++) {
+                const indicator = document.getElementById(`step-${i}-indicator`);
+                const div = indicator.querySelector('div');
+                const p = indicator.querySelector('p');
+                if (i < step) {
+                    div.classList.remove('bg-blue-600', 'bg-gray-200');
+                    div.classList.add('bg-green-500');
+                    p.classList.remove('text-blue-600', 'text-gray-400');
+                    p.classList.add('text-green-500');
+                } else if (i === step) {
+                    div.classList.remove('bg-green-500', 'bg-gray-200');
+                    div.classList.add('bg-blue-600');
+                    p.classList.remove('text-green-500', 'text-gray-400');
+                    p.classList.add('text-blue-600');
+                } else {
+                     div.classList.remove('bg-green-500', 'bg-blue-600');
+                    div.classList.add('bg-gray-200');
+                    p.classList.remove('text-green-500', 'text-blue-600');
+                    p.classList.add('text-gray-400');
+                }
+            }
+        }
+
+        function nextStep(step) {
+            // Basic validation before proceeding
+            if (currentStep === 1) {
+                if (!contractorSelect.value || !licenseSelect.value) {
+                    alert("Please select a contractor and license number.");
+                    return;
+                }
+                if (!capacityInput.value) {
+                    alert("Please ensure truck capacity is filled.");
+                    return;
+                }
+            }
+             if (currentStep === 2 && (!sourceSelect.value || !destinationSelect.value)) {
+                alert("Please select a source and destination.");
+                return;
+            }
+
+            document.getElementById(`step-${currentStep}`).classList.replace('visible-section', 'hidden-section');
+            currentStep = step;
+            document.getElementById(`step-${currentStep}`).classList.replace('hidden-section', 'visible-section');
+            updateStepIndicator(currentStep);
+        }
+
+        function prevStep(step) {
+            document.getElementById(`step-${currentStep}`).classList.replace('visible-section', 'hidden-section');
+            currentStep = step;
+            document.getElementById(`step-${currentStep}`).classList.replace('hidden-section', 'visible-section');
+            updateStepIndicator(currentStep);
+        }
+        
+        contractorSelect.addEventListener('change', () => {
+            const selectedContractor = contractorSelect.value;
+            licenseSelect.innerHTML = '<option value="">-- Select License Number --</option>';
+            destinationSelect.innerHTML = '<option value="">-- Select a Destination --</option>';
+            capacityInput.value = '';
+            licenseSelect.disabled = true;
+            destinationSelect.disabled = true;
+
+            if (selectedContractor === "Petrotreatment") {
+                capacityInput.readOnly = false;
+                capacityInput.classList.remove('bg-gray-200');
+                capacityInput.placeholder = 'Enter capacity manually';
+            } else {
+                capacityInput.readOnly = true;
+                capacityInput.classList.add('bg-gray-200');
+                capacityInput.placeholder = '';
+            }
+
+            if (selectedContractor) {
+                const contractorData = data.contractors[selectedContractor];
+                
+                // Populate licenses
+                contractorData.trucks.forEach(truck => {
+                    const option = new Option(truck.license, truck.license);
+                    licenseSelect.add(option);
+                });
+                licenseSelect.disabled = false;
+                
+                // Populate destinations
+                 contractorData.destinations.forEach(dest => {
+                    const option = new Option(dest, dest);
+                    destinationSelect.add(option);
+                });
+                destinationSelect.disabled = false;
+            }
+        });
+
+        licenseSelect.addEventListener('change', () => {
+            const selectedContractor = contractorSelect.value;
+            const selectedLicense = licenseSelect.value;
+            capacityInput.value = '';
+
+            if (selectedContractor && selectedLicense) {
+                const truck = data.contractors[selectedContractor].trucks.find(t => t.license === selectedLicense);
+                if (truck && truck.capacity) {
+                    capacityInput.value = truck.capacity;
+                }
+            }
+        });
+
+        function parseDate(dateString) { // DD/MM/YYYY to Date object
+            const [day, month, year] = dateString.split('/');
+            return new Date(year, month - 1, day);
+        }
+
+        generateReportBtn.addEventListener('click', () => {
+            const period = reportPeriodSelect.value;
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            
+            let startDate;
+
+            switch(period) {
+                case 'daily':
+                    startDate = today;
+                    break;
+                case 'weekly':
+                    startDate = new Date(today);
+                    startDate.setDate(today.getDate() - today.getDay()); // Start of the week (Sunday)
+                    break;
+                case 'biweekly':
+                    startDate = new Date(today);
+                    startDate.setDate(today.getDate() - 14);
+                    break;
+                case 'monthly':
+                    startDate = new Date(today.getFullYear(), today.getMonth(), 1); // Start of the month
+                    break;
+            }
+
+            const filteredLog = dispatchLog.filter(entry => {
+                const entryDate = parseDate(entry.date);
+                return entryDate >= startDate;
+            });
+
+            generateAndDisplayReport(filteredLog, period);
+        });
+
+        function destroyCharts() {
+            Object.values(reportCharts).forEach(chart => chart.destroy());
+            reportCharts = {};
+        }
+
+        function generateAndDisplayReport(data, period) {
+            destroyCharts();
+            reportOutput.innerHTML = '';
+            reportOutput.classList.remove('hidden');
+
+            if (data.length === 0) {
+                reportOutput.innerHTML = `<p class="text-center text-gray-500 py-4">No data available for the selected period.</p>`;
+                return;
+            }
+
+            const totalTrucks = data.length;
+            const totalCapacity = data.reduce((sum, entry) => sum + parseFloat(entry.capacity || 0), 0);
+            
+            const bySource = data.reduce((acc, entry) => {
+                acc[entry.source] = (acc[entry.source] || { count: 0, capacity: 0 });
+                acc[entry.source].count++;
+                acc[entry.source].capacity += parseFloat(entry.capacity || 0);
+                return acc;
+            }, {});
+
+            const byDestination = data.reduce((acc, entry) => {
+                acc[entry.destination] = (acc[entry.destination] || { count: 0, capacity: 0 });
+                acc[entry.destination].count++;
+                acc[entry.destination].capacity += parseFloat(entry.capacity || 0);
+                return acc;
+            }, {});
+
+            const byContractor = data.reduce((acc, entry) => {
+                acc[entry.contractor] = (acc[entry.contractor] || { count: 0, capacity: 0 });
+                acc[entry.contractor].count++;
+                acc[entry.contractor].capacity += parseFloat(entry.capacity || 0);
+                return acc;
+            }, {});
+
+            let reportHTML = `
+                <h3 class="text-xl font-bold mb-4 capitalize">${period} Report</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <p class="text-sm text-gray-600">Total Trucks</p>
+                        <p class="text-2xl font-bold">${totalTrucks}</p>
+                    </div>
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <p class="text-sm text-gray-600">Total Capacity (m³)</p>
+                        <p class="text-2xl font-bold">${totalCapacity.toFixed(2)}</p>
+                    </div>
+                </div>
+            `;
+            
+            const createTableAndChart = (title, dataObject, chartId) => {
+                let content = `<div class="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">`;
+                
+                // Chart
+                content += `<div><canvas id="${chartId}"></canvas></div>`;
+
+                // Table
+                let table = `<div><h4 class="font-semibold mb-2">${title}</h4><div class="overflow-x-auto"><table class="w-full text-sm">
+                    <thead class="bg-gray-50"><tr>
+                    <th class="p-2 text-left font-medium text-gray-600 rounded-l-md">${title.replace('Breakdown by ', '')}</th>
+                    <th class="p-2 text-right font-medium text-gray-600">Trucks</th>
+                    <th class="p-2 text-right font-medium text-gray-600 rounded-r-md">Capacity (m³)</th>
+                    </tr></thead><tbody>`;
+                for (const key in dataObject) {
+                    table += `<tr class="border-b"><td class="p-2">${key}</td><td class="p-2 text-right">${dataObject[key].count}</td><td class="p-2 text-right">${dataObject[key].capacity.toFixed(2)}</td></tr>`;
+                }
+                table += `</tbody></table></div></div>`;
+
+                content += table;
+                content += `</div><hr class="my-6"/>`;
+                return content;
+            };
+
+            reportHTML += createTableAndChart('Breakdown by Source', bySource, 'sourceChart');
+            reportHTML += createTableAndChart('Breakdown by Destination', byDestination, 'destinationChart');
+            reportHTML += createTableAndChart('Breakdown by Contractor', byContractor, 'contractorChart');
+
+            reportOutput.innerHTML = reportHTML;
+
+            // --- Generate Charts ---
+            const chartColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+            
+            const createDoughnutChart = (chartId, label, dataObject) => {
+                const ctx = document.getElementById(chartId).getContext('2d');
+                reportCharts[chartId] = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(dataObject),
+                        datasets: [{
+                            label: `Number of Trucks`,
+                            data: Object.values(dataObject).map(d => d.count),
+                            backgroundColor: chartColors,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'top',
+                            },
+                            title: {
+                                display: true,
+                                text: `${label}: Truck Count Distribution`
+                            }
+                        }
+                    },
+                });
+            };
+
+            createDoughnutChart('sourceChart', 'By Source', bySource);
+            createDoughnutChart('destinationChart', 'By Destination', byDestination);
+            createDoughnutChart('contractorChart', 'By Contractor', byContractor);
+        }
+
+        function renderTable() {
+            logTableBody.innerHTML = '';
+            if (dispatchLog.length === 0) {
+                emptyLogMessage.style.display = 'block';
+            } else {
+                 emptyLogMessage.style.display = 'none';
+                 dispatchLog.forEach((entry, index) => {
+                    const row = document.createElement('tr');
+                    row.className = `border-b hover:bg-gray-50 ${entry.status === 'Verified' ? 'bg-green-50' : ''}`;
+                    
+                    let statusCell = '';
+                    if (entry.status === 'Verified') {
+                        statusCell = `<td class="p-3 text-sm"><span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Verified ✔</span></td>`;
+                    } else {
+                        statusCell = `<td class="p-3 text-sm"><button onclick="verifyEntry(${entry.id})" class="px-3 py-1 bg-blue-500 text-white text-xs font-semibold rounded-md hover:bg-blue-600 transition">Verify</button></td>`;
+                    }
+
+                    row.innerHTML = `
+                        <td class="p-3 text-sm">${entry.date}</td>
+                        <td class="p-3 text-sm font-medium">${entry.contractor}</td>
+                        <td class="p-3 text-sm">${entry.license}</td>
+                        <td class="p-3 text-sm">${entry.capacity}</td>
+                        <td class="p-3 text-sm">${entry.source}</td>
+                        <td class="p-3 text-sm">${entry.destination}</td>
+                        <td class="p-3 text-sm"><span class="px-2 py-1 text-xs font-semibold rounded-full ${entry.shift.includes('Day') ? 'bg-yellow-100 text-yellow-800' : 'bg-indigo-100 text-indigo-800'}">${entry.shift}</span></td>
+                        ${statusCell}
+                    `;
+                    logTableBody.appendChild(row);
+                });
+            }
+        }
+
+        function verifyEntry(id) {
+            const entryIndex = dispatchLog.findIndex(entry => entry.id === id);
+            if (entryIndex !== -1) {
+                dispatchLog[entryIndex].status = 'Verified';
+                localStorage.setItem('dispatchLog', JSON.stringify(dispatchLog));
+                renderTable();
+            }
+        }
+
+        function resetForm() {
+            contractorSelect.value = '';
+            licenseSelect.innerHTML = '<option value="">-- Select License Number --</option>';
+            licenseSelect.disabled = true;
+            capacityInput.value = '';
+            sourceSelect.value = '';
+            destinationSelect.innerHTML = '<option value="">-- Select a Destination --</option>';
+            destinationSelect.disabled = true;
+            shiftSelect.value = '';
+            prevStep(1);
+        }
+
+        submitBtn.addEventListener('click', () => {
+             if (!contractorSelect.value || !licenseSelect.value || !capacityInput.value || !sourceSelect.value || !destinationSelect.value || !shiftSelect.value) {
+                alert('Please fill out all fields before submitting.');
+                return;
+            }
+
+            let dispatchDate = new Date();
+            if (shiftSelect.value === "Night Shift After Midnight") {
+                dispatchDate.setDate(dispatchDate.getDate() + 1);
+            }
+
+            const newEntry = {
+                id: Date.now(), // Unique ID for the entry
+                date: dispatchDate.toLocaleDateString('en-GB'), // DD/MM/YYYY format
+                contractor: contractorSelect.value,
+                license: licenseSelect.value,
+                capacity: capacityInput.value,
+                source: sourceSelect.value,
+                destination: destinationSelect.value,
+                shift: shiftSelect.value,
+                status: 'Dispatched' // Initial status
+            };
+
+            dispatchLog.unshift(newEntry); // Add to the beginning of the array
+            localStorage.setItem('dispatchLog', JSON.stringify(dispatchLog));
+            renderTable();
+            resetForm();
+        });
+
+        window.onload = () => {
+            const savedLog = localStorage.getItem('dispatchLog');
+            if (savedLog) {
+                dispatchLog = JSON.parse(savedLog);
+            }
+            populateContractors();
+            populateSources();
+            renderTable();
+            updateStepIndicator(1);
+        };
+    </script>
+</body>
+</html>
+
+
+
+
