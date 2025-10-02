@@ -6,6 +6,7 @@
     <title>Truck Dispatch Log</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -238,7 +239,7 @@
     <script>
         const data = {
             contractors: {
-                "Elsamy": {
+                "Elsamy - السامي": {
                     trucks: [
                         { license: "6141-7523", capacity: 58 }, { license: "6536-8561", capacity: 49 },
                         { license: "6141-8512", capacity: 58 }, { license: "3463-3921", capacity: 56 },
@@ -255,9 +256,9 @@
                         { license: "5945-2757", capacity: 50 }, { license: "1752-8471", capacity: 49 },
                         { license: "4678-7176", capacity: 51 }, { license: "9471-1285", capacity: 48 }
                     ],
-                    destinations: ["Abu Madi", "Elaalamya", "Eldawlya", "Ultra Extract", "Unico"]
+                    destinations: ["Abu Madi - أبو ماضي", "Elaalamya - العالمية", "Eldawlya - الدولية", "Ultra Extract - ألترا اكستراكت", "Unico - يونيكو"]
                 },
-                "Elbassyouny": {
+                "Elbassyouny - البسيوني": {
                     trucks: [
                         { license: "1859-2397", capacity: 49 }, { license: "4327-9482", capacity: 51 },
                         { license: "1892-5291", capacity: 61 }, { license: "4869-2487", capacity: 52 },
@@ -268,15 +269,15 @@
                         { license: "9583-5368", capacity: 44 }, { license: "5397-1876", capacity: 55 },
                         { license: "9568-5746", capacity: 48 }
                     ],
-                    destinations: ["Abu Madi", "Elaalamya"]
+                    destinations: ["Abu Madi - أبو ماضي", "Elaalamya - العالمية"]
                 },
-                "Petrotreatment": {
+                "Petrotreatment - بتروتريتمنت": {
                     trucks: [
                         { license: "1954-5398" },
                         { license: "6359-4932" },
                         { license: "1932-5417" }
                     ],
-                    destinations: ["Unico"]
+                    destinations: ["Unico - يونيكو"]
                 }
             },
             sources: [
@@ -477,7 +478,31 @@
                 return;
             }
 
-            // --- 1. Data Aggregation for Line Chart ---
+            // --- 1. Data Aggregation for Sankey Chart ---
+            const sankeyData = [['From', 'To', 'Trucks']];
+            const sourceToContractor = {}; // Key: "source|contractor", Value: count
+            const contractorToDest = {};   // Key: "contractor|destination", Value: count
+
+            data.forEach(entry => {
+                const sourceContractorKey = `${entry.source}|${entry.contractor}`;
+                sourceToContractor[sourceContractorKey] = (sourceToContractor[sourceContractorKey] || 0) + 1;
+
+                const contractorDestKey = `${entry.contractor}|${entry.destination}`;
+                contractorToDest[contractorDestKey] = (contractorToDest[contractorDestKey] || 0) + 1;
+            });
+
+            for (const key in sourceToContractor) {
+                const [source, contractor] = key.split('|');
+                sankeyData.push([source, contractor, sourceToContractor[key]]);
+            }
+
+            for (const key in contractorToDest) {
+                const [contractor, destination] = key.split('|');
+                sankeyData.push([contractor, destination, contractorToDest[key]]);
+            }
+
+
+            // --- 2. Data Aggregation for Line Chart ---
             let lineChartLabels = [];
             let truckCountData = [];
             let capacityData = [];
@@ -574,6 +599,14 @@
             let reportHTML = `
                 <h3 class="text-xl font-bold mb-4 capitalize">${period} Report</h3>
 
+                 <!-- Sankey Chart -->
+                <div class="mb-8">
+                    <h4 class="font-semibold mb-2 text-gray-700">Dispatch Flow Overview</h4>
+                    <div id="sankeyChart_div" class="bg-gray-50 p-2 rounded-lg w-full h-[450px] overflow-hidden"></div>
+                </div>
+                <hr class="my-8"/>
+
+
                 <!-- Line Chart -->
                 <div class="mb-8">
                     <h4 class="font-semibold mb-2 text-gray-700">Trend Overview</h4>
@@ -625,6 +658,7 @@
             reportOutput.innerHTML = reportHTML;
 
             // --- Generate Charts ---
+            createSankeyChart(sankeyData);
             createTrendChart(lineChartLabels, truckCountData, capacityData);
 
             const chartColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
@@ -662,6 +696,45 @@
             createDoughnutChart('destinationChart', 'By Destination', byDestination);
             createDoughnutChart('contractorChart', 'By Contractor', byContractor);
         }
+
+        function createSankeyChart(dataArray) {
+            if (dataArray.length <= 1) return; // Not enough data to draw
+
+            google.charts.load('current', {'packages':['sankey']});
+            google.charts.setOnLoadCallback(drawChart);
+
+            function drawChart() {
+                const data = google.visualization.arrayToDataTable(dataArray);
+
+                const contractorColors = {
+                    "Elsamy - السامي": '#3B82F6', // Blue
+                    "Elbassyouny - البسيوني": '#10B981', // Green
+                    "Petrotreatment - بتروتريتمنت": '#F59E0B' // Orange
+                };
+                
+                const uniqueNodes = Array.from(new Set(dataArray.slice(1).flatMap(row => [row[0], row[1]])));
+                
+                const nodeColors = uniqueNodes.map(node => contractorColors[node] || '#6B7280'); // Gray for non-contractors
+
+                const options = {
+                    height: 450,
+                    sankey: {
+                        node: {
+                            colors: nodeColors,
+                            label: { fontName: 'Inter', fontSize: 13, color: '#000', bold: true },
+                            nodePadding: 20
+                        },
+                        link: {
+                            colorMode: 'gradient',
+                        }
+                    },
+                };
+
+                const chart = new google.visualization.Sankey(document.getElementById('sankeyChart_div'));
+                chart.draw(data, options);
+            }
+        }
+
 
         function createTrendChart(labels, truckData, capacityData) {
             const ctx = document.getElementById('trendChart').getContext('2d');
@@ -854,5 +927,7 @@
     </script>
 </body>
 </html>
+
+
 
 
