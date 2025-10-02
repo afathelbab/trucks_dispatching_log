@@ -183,13 +183,12 @@
             <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
                 <div class="flex flex-col sm:flex-row items-center gap-4">
                     <div class="w-full sm:w-auto flex-grow">
-                        <label for="report-period" class="block text-sm font-medium text-gray-700 mb-1">Select Period</label>
-                        <select id="report-period" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
-                            <option value="daily">Daily</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="biweekly">Bi-Weekly (Last 14 days)</option>
-                            <option value="monthly">Monthly</option>
-                        </select>
+                        <label for="report-start-date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                        <input type="date" id="report-start-date" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                    <div class="w-full sm:w-auto flex-grow">
+                        <label for="report-end-date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                        <input type="date" id="report-end-date" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
                     </div>
                     <button id="generate-report-btn" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition self-end">
                         Generate
@@ -252,7 +251,7 @@
                         { license: "9856-1795", capacity: 53 }, { license: "1277-9734", capacity: 50 },
                         { license: "8385-8789", capacity: 51 }, { license: "8348-9212", capacity: 48 },
                         { license: "2712-6893", capacity: 59 }, { license: "3845-1764", capacity: 55 },
-                        { license: "6478-1368", capacity: 50 }, { license: "5312-9793", capacity: 57 },
+                        { license: "6478-1368", capacity: 50 }, { license: "5312-9733", capacity: 57 },
                         { license: "1831-3734", capacity: 50 }, { license: "7956-2616", capacity: 59 },
                         { license: "3735-3453", capacity: 50 }, { license: "5939-1187", capacity: 48 },
                         { license: "8241-7579", capacity: 52 }, { license: "5715-3526", capacity: 50 },
@@ -305,7 +304,8 @@
         const logTableBody = document.getElementById('log-table-body');
         const emptyLogMessage = document.getElementById('empty-log-message');
         const generateReportBtn = document.getElementById('generate-report-btn');
-        const reportPeriodSelect = document.getElementById('report-period');
+        const reportStartDateInput = document.getElementById('report-start-date');
+        const reportEndDateInput = document.getElementById('report-end-date');
         const reportOutput = document.getElementById('report-output');
 
         let currentStep = 1;
@@ -389,7 +389,7 @@
             licenseSelect.disabled = true;
             destinationSelect.disabled = true;
 
-            if (selectedContractor === "Petrotreatment") {
+            if (selectedContractor.includes("Petrotreatment")) {
                 capacityInput.readOnly = false;
                 capacityInput.classList.remove('bg-gray-200');
                 capacityInput.placeholder = 'Enter capacity manually';
@@ -437,35 +437,33 @@
         }
 
         generateReportBtn.addEventListener('click', () => {
-            const period = reportPeriodSelect.value;
-            const now = new Date();
-            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            
-            let startDate;
+            const startDateValue = reportStartDateInput.value;
+            const endDateValue = reportEndDateInput.value;
 
-            switch(period) {
-                case 'daily':
-                    startDate = today;
-                    break;
-                case 'weekly':
-                    startDate = new Date(today);
-                    startDate.setDate(today.getDate() - today.getDay()); // Start of the week (Sunday)
-                    break;
-                case 'biweekly':
-                    startDate = new Date(today);
-                    startDate.setDate(today.getDate() - 14);
-                    break;
-                case 'monthly':
-                    startDate = new Date(today.getFullYear(), today.getMonth(), 1); // Start of the month
-                    break;
+            if (!startDateValue || !endDateValue) {
+                alert("Please select both a start and end date for the report.");
+                return;
             }
+
+            const startDate = new Date(startDateValue);
+            const endDate = new Date(endDateValue);
+            
+            if (startDate > endDate) {
+                alert("Start date cannot be after the end date.");
+                return;
+            }
+
+            // Set time to ensure the full day is included
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+
 
             const filteredLog = dispatchLog.filter(entry => {
                 const entryDate = parseDate(entry.date);
-                return entryDate >= startDate;
+                return entryDate >= startDate && entryDate <= endDate;
             });
 
-            generateAndDisplayReport(filteredLog, period);
+            generateAndDisplayReport(filteredLog, startDate, endDate);
         });
 
         function destroyCharts() {
@@ -473,12 +471,12 @@
             reportCharts = {};
         }
 
-        function generateAndDisplayReport(data, period) {
+        function generateAndDisplayReport(reportData, startDate, endDate) {
             destroyCharts();
             reportOutput.innerHTML = '';
             reportOutput.classList.remove('hidden');
 
-            if (data.length === 0) {
+            if (reportData.length === 0) {
                 reportOutput.innerHTML = `<p class="text-center text-gray-500 py-4">No data available for the selected period.</p>`;
                 return;
             }
@@ -488,7 +486,7 @@
             const sourceToContractor = {}; // Key: "source|contractor", Value: count
             const contractorToDest = {};   // Key: "contractor|destination", Value: count
 
-            data.forEach(entry => {
+            reportData.forEach(entry => {
                 const sourceContractorKey = `${entry.source}|${entry.contractor}`;
                 sourceToContractor[sourceContractorKey] = (sourceToContractor[sourceContractorKey] || 0) + 1;
 
@@ -511,90 +509,118 @@
             let lineChartLabels = [];
             let truckCountData = [];
             let capacityData = [];
+            let reportTitle = '';
+            
+            const diffTime = Math.abs(endDate - startDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-            const today = new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate());
-
-            if (period === 'daily') {
+            if (diffDays <= 1) { // Single Day Report
+                reportTitle = `Report for ${startDate.toLocaleDateString('en-GB')}`;
                 lineChartLabels = ['Night After Midnight', 'Day Shift', 'Night Before Midnight'];
                 const shiftOrder = { 'Night Shift After Midnight': 0, 'Day Shift': 1, 'Night Shift - Before Midnight': 2 };
                 truckCountData = [0, 0, 0];
                 capacityData = [0, 0, 0];
                 
-                data.forEach(entry => {
+                reportData.forEach(entry => {
                     const idx = shiftOrder[entry.shift];
                     if (idx !== undefined) {
                         truckCountData[idx]++;
                         capacityData[idx] += parseFloat(entry.capacity || 0);
                     }
                 });
-            } else if (period === 'weekly') {
-                lineChartLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                truckCountData = Array(7).fill(0);
-                capacityData = Array(7).fill(0);
 
-                data.forEach(entry => {
-                    const entryDate = parseDate(entry.date);
-                    const dayIndex = entryDate.getDay();
-                    truckCountData[dayIndex]++;
-                    capacityData[dayIndex] += parseFloat(entry.capacity || 0);
-                });
-            } else if (period === 'biweekly') {
-                truckCountData = Array(14).fill(0);
-                capacityData = Array(14).fill(0);
+            } else if (diffDays <= 31) { // Daily breakdown for up to a month
+                reportTitle = `Report from ${startDate.toLocaleDateString('en-GB')} to ${endDate.toLocaleDateString('en-GB')}`;
                 const dateMap = {};
-
-                for (let i = 13; i >= 0; i--) {
-                    const date = new Date(today);
-                    date.setDate(today.getDate() - i);
-                    const dateString = date.toLocaleDateString('en-GB').slice(0, 5); // DD/MM
-                    lineChartLabels.push(dateString);
-                    dateMap[dateString] = 13 - i;
+                let currentDate = new Date(startDate);
+                let i = 0;
+                while (currentDate <= endDate) {
+                    const dateString = currentDate.toLocaleDateString('en-GB');
+                    lineChartLabels.push(dateString.slice(0, 5)); // DD/MM
+                    dateMap[dateString] = i;
+                    truckCountData.push(0);
+                    capacityData.push(0);
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    i++;
                 }
 
-                data.forEach(entry => {
-                    const dateKey = entry.date.slice(0, 5);
-                    const idx = dateMap[dateKey];
+                reportData.forEach(entry => {
+                    const idx = dateMap[entry.date];
                     if (idx !== undefined) {
                         truckCountData[idx]++;
                         capacityData[idx] += parseFloat(entry.capacity || 0);
                     }
                 });
-            } else if (period === 'monthly') {
-                const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-                const numWeeks = Math.ceil(endOfMonth.getDate() / 7);
-                lineChartLabels = Array.from({ length: numWeeks }, (_, i) => `Week ${i + 1}`);
-                truckCountData = Array(numWeeks).fill(0);
-                capacityData = Array(numWeeks).fill(0);
+            } else if (diffDays <= 182) { // Weekly breakdown for up to ~6 months
+                 reportTitle = `Report from ${startDate.toLocaleDateString('en-GB')} to ${endDate.toLocaleDateString('en-GB')}`;
+                const weeklyData = {}; 
 
-                data.forEach(entry => {
+                reportData.forEach(entry => {
                     const entryDate = parseDate(entry.date);
-                    const weekIndex = Math.floor((entryDate.getDate() - 1) / 7);
-                    if (weekIndex >= 0 && weekIndex < numWeeks) {
-                        truckCountData[weekIndex]++;
-                        capacityData[weekIndex] += parseFloat(entry.capacity || 0);
+                    const day = entryDate.getDay();
+                    const diff = entryDate.getDate() - day + (day === 0 ? -6 : 1); // adjust when day is sunday
+                    const startOfWeek = new Date(entryDate.setDate(diff));
+                    const weekKey = startOfWeek.toISOString().split('T')[0];
+
+                    if (!weeklyData[weekKey]) {
+                        weeklyData[weekKey] = { trucks: 0, capacity: 0 };
                     }
+                    weeklyData[weekKey].trucks++;
+                    weeklyData[weekKey].capacity += parseFloat(entry.capacity || 0);
+                });
+
+                const sortedWeeks = Object.keys(weeklyData).sort();
+                sortedWeeks.forEach(weekKey => {
+                    const date = new Date(weekKey);
+                    date.setMinutes(date.getMinutes() + date.getTimezoneOffset()); // Adjust for timezone
+                    lineChartLabels.push(`W/C ${date.toLocaleDateString('en-GB')}`);
+                    truckCountData.push(weeklyData[weekKey].trucks);
+                    capacityData.push(weeklyData[weekKey].capacity);
+                });
+
+            } else { // Monthly breakdown
+                reportTitle = `Report from ${startDate.toLocaleDateString('en-GB')} to ${endDate.toLocaleDateString('en-GB')}`;
+                const monthlyData = {};
+                reportData.forEach(entry => {
+                    const entryDate = parseDate(entry.date);
+                    const monthKey = `${entryDate.getFullYear()}-${String(entryDate.getMonth() + 1).padStart(2, '0')}`;
+                     if (!monthlyData[monthKey]) {
+                        monthlyData[monthKey] = { trucks: 0, capacity: 0 };
+                    }
+                    monthlyData[monthKey].trucks++;
+                    monthlyData[monthKey].capacity += parseFloat(entry.capacity || 0);
+                });
+
+                const sortedMonths = Object.keys(monthlyData).sort();
+                sortedMonths.forEach(monthKey => {
+                    const [year, month] = monthKey.split('-');
+                    const labelDate = new Date(year, month - 1, 1);
+                    const label = labelDate.toLocaleString('default', { month: 'short', year: 'numeric' });
+                    lineChartLabels.push(label);
+                    truckCountData.push(monthlyData[monthKey].trucks);
+                    capacityData.push(monthlyData[monthKey].capacity);
                 });
             }
 
 
-            const totalTrucks = data.length;
-            const totalCapacity = data.reduce((sum, entry) => sum + parseFloat(entry.capacity || 0), 0);
+            const totalTrucks = reportData.length;
+            const totalCapacity = reportData.reduce((sum, entry) => sum + parseFloat(entry.capacity || 0), 0);
             
-            const bySource = data.reduce((acc, entry) => {
+            const bySource = reportData.reduce((acc, entry) => {
                 acc[entry.source] = (acc[entry.source] || { count: 0, capacity: 0 });
                 acc[entry.source].count++;
                 acc[entry.source].capacity += parseFloat(entry.capacity || 0);
                 return acc;
             }, {});
 
-            const byDestination = data.reduce((acc, entry) => {
+            const byDestination = reportData.reduce((acc, entry) => {
                 acc[entry.destination] = (acc[entry.destination] || { count: 0, capacity: 0 });
                 acc[entry.destination].count++;
                 acc[entry.destination].capacity += parseFloat(entry.capacity || 0);
                 return acc;
             }, {});
 
-            const byContractor = data.reduce((acc, entry) => {
+            const byContractor = reportData.reduce((acc, entry) => {
                 acc[entry.contractor] = (acc[entry.contractor] || { count: 0, capacity: 0 });
                 acc[entry.contractor].count++;
                 acc[entry.contractor].capacity += parseFloat(entry.capacity || 0);
@@ -602,7 +628,7 @@
             }, {});
 
             let reportHTML = `
-                <h3 class="text-xl font-bold mb-4 capitalize">${period} Report</h3>
+                <h3 class="text-xl font-bold mb-4">${reportTitle}</h3>
 
                  <!-- Sankey Chart -->
                 <div class="mb-8">
@@ -964,6 +990,8 @@
             const day = String(today.getDate()).padStart(2, '0');
             const todayString = `${year}-${month}-${day}`;
             dispatchDateInput.value = todayString;
+            reportStartDateInput.value = todayString;
+            reportEndDateInput.value = todayString;
         }
 
         window.onload = () => {
