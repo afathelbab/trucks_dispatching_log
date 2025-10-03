@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -801,7 +803,13 @@
             }, {});
 
             let reportHTML = `
-                <h3 class="text-xl font-bold mb-4">${reportTitle}</h3>
+                 <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">${reportTitle}</h3>
+                    <div class="flex gap-2">
+                        <button onclick="exportToPDF()" class="px-3 py-2 bg-red-500 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-red-600">Export PDF</button>
+                        <button onclick="exportToExcel()" class="px-3 py-2 bg-green-500 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-green-600">Export Excel</button>
+                    </div>
+                 </div>
 
                  <!-- Sankey Chart -->
                 <div class="mb-8">
@@ -858,6 +866,8 @@
             reportHTML += createTableAndChart('Breakdown by Source', bySource, 'sourceChart');
             reportHTML += createTableAndChart('Breakdown by Destination', byDestination, 'destinationChart');
             reportHTML += createTableAndChart('Breakdown by Contractor', byContractor, 'contractorChart');
+            
+            reportHTML += generateSummaryTable(reportData);
 
             reportOutput.innerHTML = reportHTML;
 
@@ -900,6 +910,83 @@
             createDoughnutChart('destinationChart', 'By Destination', byDestination);
             createDoughnutChart('contractorChart', 'By Contractor', byContractor);
         }
+
+        function generateSummaryTable(reportData) {
+            const summary = {};
+            // { contractor: { source: { destination: { count: x, capacity: y } } } }
+            reportData.forEach(entry => {
+                if (!summary[entry.contractor]) summary[entry.contractor] = {};
+                if (!summary[entry.contractor][entry.source]) summary[entry.contractor][entry.source] = {};
+                if (!summary[entry.contractor][entry.source][entry.destination]) {
+                    summary[entry.contractor][entry.source][entry.destination] = { count: 0, capacity: 0 };
+                }
+                summary[entry.contractor][entry.source][entry.destination].count++;
+                summary[entry.contractor][entry.source][entry.destination].capacity += parseFloat(entry.capacity);
+            });
+
+            let table = `
+                <div class="mt-8">
+                    <h3 class="text-xl font-bold mb-4">Detailed Summary Table</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left border" id="summary-table">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="p-2 border">Contractor</th>
+                                    <th class="p-2 border">Source</th>
+                                    <th class="p-2 border">Destination</th>
+                                    <th class="p-2 border text-right">Trucks</th>
+                                    <th class="p-2 border text-right">Total Capacity (m³)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            Object.keys(summary).sort().forEach(contractor => {
+                Object.keys(summary[contractor]).sort().forEach(source => {
+                    Object.keys(summary[contractor][source]).sort().forEach(destination => {
+                        const data = summary[contractor][source][destination];
+                        table += `
+                            <tr class="border">
+                                <td class="p-2 border">${contractor}</td>
+                                <td class="p-2 border">${source}</td>
+                                <td class="p-2 border">${destination}</td>
+                                <td class="p-2 border text-right">${data.count}</td>
+                                <td class="p-2 border text-right">${data.capacity.toFixed(2)}</td>
+                            </tr>
+                        `;
+                    });
+                });
+            });
+
+
+            table += `</tbody></table></div></div>`;
+            return table;
+        }
+        
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const reportContent = document.getElementById('report-output');
+            doc.html(reportContent, {
+                callback: function (doc) {
+                    doc.save('dispatch_report.pdf');
+                },
+                x: 10,
+                y: 10,
+                width: 190,
+                windowWidth: reportContent.scrollWidth
+            });
+        }
+
+        function exportToExcel() {
+            const wb = XLSX.utils.book_new();
+            const summaryTable = document.getElementById('summary-table');
+            if (summaryTable) {
+                const ws = XLSX.utils.table_to_sheet(summaryTable);
+                XLSX.utils.book_append_sheet(wb, ws, "Summary");
+            }
+            XLSX.writeFile(wb, 'dispatch_report.xlsx');
+        }
         
         function generateAndDisplayTruckReport(reportData, license, startDate, endDate) {
             truckReportOutput.innerHTML = '';
@@ -938,7 +1025,7 @@
                     </thead>
                     <tbody>`;
             
-            reportData.forEach(entry => {
+            reportData.sort((a,b) => parseDate(b.date) - parseDate(a.date)).forEach(entry => {
                 tableHTML += `
                     <tr class="border-b">
                         <td class="p-3">${entry.date}</td>
@@ -1179,6 +1266,7 @@
                 
                 if (!contractorData.trucks || contractorData.trucks.length === 0) continue;
                 if (!contractorData.destinations || contractorData.destinations.length === 0) continue;
+                if (!appData.sources || appData.sources.length === 0) continue;
 
                 const randomTruck = contractorData.trucks[Math.floor(Math.random() * contractorData.trucks.length)];
                 const randomDestination = contractorData.destinations[Math.floor(Math.random() * contractorData.destinations.length)];
@@ -1339,7 +1427,7 @@
                 </div>
             `;
             const list = panel.querySelector('#source-list');
-            appData.sources.forEach(name => {
+            appData.sources.sort().forEach(name => {
                  const li = document.createElement('li');
                 li.className = 'flex justify-between items-center p-3 bg-white border rounded-lg';
                 li.innerHTML = `
@@ -1395,55 +1483,6 @@
         }
         
         // --- Management Functions ---
-        function addContractor() { /* ... */ }
-        function editContractor(oldName) { /* ... */ }
-        function deleteContractor(name) { /* ... */ }
-        // ... other management functions for trucks, sources, destinations ...
-
-        function setTodayDate() {
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const day = String(today.getDate()).padStart(2, '0');
-            const todayString = `${year}-${month}-${day}`;
-            dispatchDateInput.value = todayString;
-            reportStartDateInput.value = todayString;
-            reportEndDateInput.value = todayString;
-            document.getElementById('truck-report-start-date').value = todayString;
-            document.getElementById('truck-report-end-date').value = todayString;
-        }
-
-        window.onload = () => {
-            loadData();
-            const savedLog = localStorage.getItem('dispatchLog');
-            if (savedLog) {
-                dispatchLog = JSON.parse(savedLog);
-            }
-            populateAllDropdowns();
-            renderTable();
-            updateStepIndicator(1);
-            setTodayDate();
-        };
-
-        document.getElementById('generate-data-btn').addEventListener('click', generateTestData);
-        document.getElementById('clear-log-btn').addEventListener('click', clearLog);
-        settingsBtn.addEventListener('click', openSettingsModal);
-        closeSettingsBtn.addEventListener('click', closeSettingsModal);
-        settingsTabs.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (e.target.classList.contains('tab-item')) {
-                document.querySelectorAll('.tab-item').forEach(tab => {
-                    tab.classList.remove('text-blue-600', 'border-blue-600');
-                    tab.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-                });
-                e.target.classList.add('text-blue-600', 'border-blue-600');
-                e.target.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
-                renderSettingsPanels(e.target.dataset.panel);
-            }
-        });
-        
-        // Placeholder for full settings management functions
-        
         function addContractor() {
             const name = document.getElementById('new-contractor-name').value.trim();
             if (!name) {
@@ -1460,14 +1499,14 @@
         }
         function editContractor(oldName) {
             const newName = prompt("Enter the new name for the contractor:", oldName);
-            if (newName && newName.trim() !== oldName) {
-                if (appData.contractors[newName]) {
+            if (newName && newName.trim() && newName.trim() !== oldName) {
+                if (appData.contractors[newName.trim()]) {
                     alert("A contractor with this name already exists.");
                     return;
                 }
                 const data = appData.contractors[oldName];
                 delete appData.contractors[oldName];
-                appData.contractors[newName] = data;
+                appData.contractors[newName.trim()] = data;
                 saveData();
                 renderContractorsPanel();
             }
@@ -1525,7 +1564,7 @@
         }
         function editSource(oldName) {
             const newName = prompt("Enter new name for source:", oldName);
-            if (newName && newName.trim() !== oldName) {
+            if (newName && newName.trim() && newName.trim() !== oldName) {
                  const index = appData.sources.indexOf(oldName);
                  if (index > -1) {
                     appData.sources[index] = newName.trim();
@@ -1552,7 +1591,7 @@
         }
         function editDestination(contractor, oldName) {
             const newName = prompt("Enter new name for destination:", oldName);
-            if (newName && newName.trim() !== oldName) {
+            if (newName && newName.trim() && newName.trim() !== oldName) {
                 const destinations = appData.contractors[contractor].destinations;
                 const index = destinations.indexOf(oldName);
                 if (index > -1) {
@@ -1570,6 +1609,48 @@
                 renderDestinationsPanel();
             }
         }
+
+        function setTodayDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            const todayString = `${year}-${month}-${day}`;
+            dispatchDateInput.value = todayString;
+            reportStartDateInput.value = todayString;
+            reportEndDateInput.value = todayString;
+            document.getElementById('truck-report-start-date').value = todayString;
+            document.getElementById('truck-report-end-date').value = todayString;
+        }
+
+        window.onload = () => {
+            loadData();
+            const savedLog = localStorage.getItem('dispatchLog');
+            if (savedLog) {
+                dispatchLog = JSON.parse(savedLog);
+            }
+            populateAllDropdowns();
+            renderTable();
+            updateStepIndicator(1);
+            setTodayDate();
+        };
+
+        document.getElementById('generate-data-btn').addEventListener('click', generateTestData);
+        document.getElementById('clear-log-btn').addEventListener('click', clearLog);
+        settingsBtn.addEventListener('click', openSettingsModal);
+        closeSettingsBtn.addEventListener('click', closeSettingsModal);
+        settingsTabs.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (e.target.classList.contains('tab-item')) {
+                document.querySelectorAll('.tab-item').forEach(tab => {
+                    tab.classList.remove('text-blue-600', 'border-blue-600');
+                    tab.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                });
+                e.target.classList.add('text-blue-600', 'border-blue-600');
+                e.target.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                renderSettingsPanels(e.target.dataset.panel);
+            }
+        });
 
     </script>
 </body>
