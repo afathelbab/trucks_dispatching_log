@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -965,18 +966,52 @@
         
         function exportToPDF() {
             const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
             const reportContent = document.getElementById('report-output');
-            doc.html(reportContent, {
-                callback: function (doc) {
-                    doc.save('dispatch_report.pdf');
-                },
-                x: 10,
-                y: 10,
-                width: 190,
-                windowWidth: reportContent.scrollWidth
+            const reportTitle = reportContent.querySelector('h3').innerText;
+
+            // Temporarily hide buttons for capture
+            const exportButtons = reportContent.querySelector('.flex.justify-between.items-center');
+            if (exportButtons) exportButtons.style.display = 'none';
+
+            html2canvas(reportContent, { scale: 2, useCORS: true }).then(canvas => {
+                // Show buttons again after capture
+                if (exportButtons) exportButtons.style.display = 'flex';
+
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF({
+                    orientation: 'p',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                const ratio = canvasWidth / canvasHeight;
+                
+                let imgWidth = pdfWidth - 20; // 10mm margin on each side
+                let imgHeight = imgWidth / ratio;
+                let heightLeft = imgHeight;
+                let position = 10; // 10mm top margin
+
+                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                heightLeft -= (pdfHeight - 20);
+
+                while (heightLeft > 0) {
+                    position = -(imgHeight - heightLeft) + 10;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                    heightLeft -= (pdfHeight - 20);
+                }
+                
+                pdf.save(`${reportTitle.replace(/ /g, '_')}.pdf`);
+            }).catch(err => {
+                console.error("Error exporting to PDF:", err);
+                if (exportButtons) exportButtons.style.display = 'flex';
             });
         }
+
 
         function exportToExcel() {
             const wb = XLSX.utils.book_new();
@@ -1655,4 +1690,5 @@
     </script>
 </body>
 </html>
+
 
