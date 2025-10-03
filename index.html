@@ -527,7 +527,7 @@
                 
                 // Populate licenses
                 if (contractorData.trucks) {
-                    contractorData.trucks.forEach(truck => {
+                    contractorData.trucks.sort((a,b) => a.license.localeCompare(b.license)).forEach(truck => {
                         const option = new Option(truck.license, truck.license);
                         licenseSelect.add(option);
                     });
@@ -536,7 +536,7 @@
                 
                 // Populate destinations
                 if(contractorData.destinations) {
-                    contractorData.destinations.forEach(dest => {
+                    contractorData.destinations.sort().forEach(dest => {
                         const option = new Option(dest, dest);
                         destinationSelect.add(option);
                     });
@@ -552,7 +552,7 @@
             if (selectedContractor) {
                 const contractorData = appData.contractors[selectedContractor];
                  if(contractorData.trucks) {
-                    contractorData.trucks.forEach(truck => {
+                    contractorData.trucks.sort((a,b) => a.license.localeCompare(b.license)).forEach(truck => {
                         const option = new Option(truck.license, truck.license);
                         reportLicenseSelect.add(option);
                     });
@@ -607,6 +607,34 @@
             });
 
             generateAndDisplayReport(filteredLog, startDate, endDate);
+        });
+        
+        generateTruckReportBtn.addEventListener('click', () => {
+            const contractor = reportContractorSelect.value;
+            const license = reportLicenseSelect.value;
+            const startDateValue = document.getElementById('truck-report-start-date').value;
+            const endDateValue = document.getElementById('truck-report-end-date').value;
+
+            if (!contractor || !license || !startDateValue || !endDateValue) {
+                alert("Please select a contractor, truck, and both a start and end date.");
+                return;
+            }
+
+            const startDate = new Date(startDateValue);
+            const endDate = new Date(endDateValue);
+            if (startDate > endDate) {
+                alert("Start date cannot be after the end date.");
+                return;
+            }
+            startDate.setHours(0, 0, 0, 0);
+            endDate.setHours(23, 59, 59, 999);
+
+            const filteredLog = dispatchLog.filter(entry => {
+                const entryDate = parseDate(entry.date);
+                return entry.license === license && entryDate >= startDate && entryDate <= endDate;
+            });
+
+            generateAndDisplayTruckReport(filteredLog, license, startDate, endDate);
         });
 
         function destroyCharts() {
@@ -872,6 +900,60 @@
             createDoughnutChart('destinationChart', 'By Destination', byDestination);
             createDoughnutChart('contractorChart', 'By Contractor', byContractor);
         }
+        
+        function generateAndDisplayTruckReport(reportData, license, startDate, endDate) {
+            truckReportOutput.innerHTML = '';
+            truckReportOutput.classList.remove('hidden');
+
+            if (reportData.length === 0) {
+                truckReportOutput.innerHTML = `<p class="text-center text-gray-500 py-4">No data available for this truck in the selected period.</p>`;
+                return;
+            }
+
+            const totalTrips = reportData.length;
+            const totalCapacity = reportData.reduce((sum, entry) => sum + parseFloat(entry.capacity || 0), 0);
+
+            let tableHTML = `
+                <h3 class="text-xl font-bold mb-4">History for Truck: ${license}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <p class="text-sm text-gray-600">Total Trips</p>
+                        <p class="text-2xl font-bold">${totalTrips}</p>
+                    </div>
+                    <div class="bg-gray-100 p-4 rounded-lg">
+                        <p class="text-sm text-gray-600">Total Capacity Hauled (m³)</p>
+                        <p class="text-2xl font-bold">${totalCapacity.toFixed(2)}</p>
+                    </div>
+                </div>
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="p-3 font-semibold text-gray-600 rounded-l-lg">Date</th>
+                            <th class="p-3 font-semibold text-gray-600">Source</th>
+                            <th class="p-3 font-semibold text-gray-600">Destination</th>
+                            <th class="p-3 font-semibold text-gray-600">Shift</th>
+                            <th class="p-3 font-semibold text-gray-600">Capacity (m³)</th>
+                            <th class="p-3 font-semibold text-gray-600 rounded-r-lg">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            
+            reportData.forEach(entry => {
+                tableHTML += `
+                    <tr class="border-b">
+                        <td class="p-3">${entry.date}</td>
+                        <td class="p-3">${entry.source}</td>
+                        <td class="p-3">${entry.destination}</td>
+                        <td class="p-3">${entry.shift}</td>
+                        <td class="p-3">${entry.capacity}</td>
+                        <td class="p-3">${entry.status}</td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += `</tbody></table>`;
+            truckReportOutput.innerHTML = tableHTML;
+        }
 
         function createSankeyChart(dataArray) {
             if (dataArray.length <= 1) return; // Not enough data to draw
@@ -1095,6 +1177,9 @@
                 const randomContractorName = contractorNames[Math.floor(Math.random() * contractorNames.length)];
                 const contractorData = appData.contractors[randomContractorName];
                 
+                if (!contractorData.trucks || contractorData.trucks.length === 0) continue;
+                if (!contractorData.destinations || contractorData.destinations.length === 0) continue;
+
                 const randomTruck = contractorData.trucks[Math.floor(Math.random() * contractorData.trucks.length)];
                 const randomDestination = contractorData.destinations[Math.floor(Math.random() * contractorData.destinations.length)];
                 const randomSource = appData.sources[Math.floor(Math.random() * appData.sources.length)];
@@ -1139,7 +1224,7 @@
         
         // --- Settings Modal Logic ---
         function openSettingsModal() {
-            renderSettingsPanels();
+            renderSettingsPanels('contractors-panel');
             settingsModal.classList.remove('hidden');
             setTimeout(() => settingsModal.classList.remove('opacity-0'), 10);
             setTimeout(() => settingsModal.querySelector('.modal-content').classList.remove('scale-95'), 10);
@@ -1151,16 +1236,169 @@
             setTimeout(() => settingsModal.classList.add('hidden'), 250);
         }
         
-        function renderSettingsPanels() {
-             // Render Contractors
-            const contractorsPanel = document.getElementById('contractors-panel');
-            // ... logic to render contractors form and list ...
+        function renderSettingsPanels(activePanelId) {
+            document.querySelectorAll('.settings-panel').forEach(p => p.classList.add('hidden'));
+            document.getElementById(activePanelId).classList.remove('hidden');
 
-            // Render Trucks
-            const trucksPanel = document.getElementById('trucks-panel');
-            // ... logic to render trucks form and list ...
+            switch(activePanelId) {
+                case 'contractors-panel': renderContractorsPanel(); break;
+                case 'trucks-panel': renderTrucksPanel(); break;
+                case 'sources-panel': renderSourcesPanel(); break;
+                case 'destinations-panel': renderDestinationsPanel(); break;
+            }
         }
+        
+        function renderContractorsPanel() {
+             const panel = document.getElementById('contractors-panel');
+             let html = `
+                <div class="mb-6 p-4 border rounded-lg bg-gray-50">
+                    <h3 class="font-semibold mb-2">Add New Contractor</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-contractor-name" placeholder="Contractor Name" class="flex-grow p-2 border rounded-md">
+                        <button onclick="addContractor()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Add</button>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">Existing Contractors</h3>
+                    <ul id="contractor-list" class="space-y-2"></ul>
+                </div>
+             `;
+             panel.innerHTML = html;
+             
+             const list = panel.querySelector('#contractor-list');
+             const contractors = Object.keys(appData.contractors).sort();
+             contractors.forEach(name => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center p-3 bg-white border rounded-lg';
+                li.innerHTML = `
+                    <span>${name}</span>
+                    <div class="space-x-2">
+                        <button onclick="editContractor('${name}')" class="text-blue-500 hover:underline">Edit</button>
+                        <button onclick="deleteContractor('${name}')" class="text-red-500 hover:underline">Delete</button>
+                    </div>
+                `;
+                list.appendChild(li);
+             });
+        }
+        
+        function renderTrucksPanel() {
+            const panel = document.getElementById('trucks-panel');
+             let contractorOptions = Object.keys(appData.contractors).sort().map(c => `<option value="${c}">${c}</option>`).join('');
 
+            panel.innerHTML = `
+                <div class="mb-6 p-4 border rounded-lg bg-gray-50">
+                    <h3 class="font-semibold mb-2">Add New Truck</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <select id="new-truck-contractor" class="p-2 border rounded-md">${contractorOptions}</select>
+                        <input type="text" id="new-truck-license" placeholder="License Number" class="p-2 border rounded-md">
+                        <input type="number" id="new-truck-capacity" placeholder="Capacity (optional)" class="p-2 border rounded-md">
+                    </div>
+                     <button onclick="addTruck()" class="mt-2 px-4 py-2 w-full bg-blue-600 text-white rounded-md hover:bg-blue-700">Add Truck</button>
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">Existing Trucks</h3>
+                    <div id="truck-list" class="space-y-4"></div>
+                </div>
+            `;
+            const truckListDiv = panel.querySelector('#truck-list');
+            Object.keys(appData.contractors).sort().forEach(contractorName => {
+                const contractor = appData.contractors[contractorName];
+                if(contractor.trucks && contractor.trucks.length > 0) {
+                     let trucksHTML = contractor.trucks.map(truck => `
+                        <li class="flex justify-between items-center p-2 bg-gray-50 border-l-4 border-gray-300">
+                            <span><strong>${truck.license}</strong> (Capacity: ${truck.capacity || 'N/A'})</span>
+                            <div class="space-x-2">
+                                <button onclick="editTruck('${contractorName}', '${truck.license}')" class="text-blue-500 hover:underline">Edit</button>
+                                <button onclick="deleteTruck('${contractorName}', '${truck.license}')" class="text-red-500 hover:underline">Delete</button>
+                            </div>
+                        </li>
+                    `).join('');
+                    truckListDiv.innerHTML += `
+                        <div class="p-3 bg-white border rounded-lg">
+                           <h4 class="font-bold text-lg mb-2">${contractorName}</h4>
+                           <ul class="space-y-1">${trucksHTML}</ul>
+                        </div>
+                    `;
+                }
+            });
+        }
+        
+        function renderSourcesPanel() {
+            const panel = document.getElementById('sources-panel');
+            panel.innerHTML = `
+                <div class="mb-6 p-4 border rounded-lg bg-gray-50">
+                    <h3 class="font-semibold mb-2">Add New Source</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-source-name" placeholder="Source Name" class="flex-grow p-2 border rounded-md">
+                        <button onclick="addSource()" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Add</button>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">Existing Sources</h3>
+                    <ul id="source-list" class="space-y-2"></ul>
+                </div>
+            `;
+            const list = panel.querySelector('#source-list');
+            appData.sources.forEach(name => {
+                 const li = document.createElement('li');
+                li.className = 'flex justify-between items-center p-3 bg-white border rounded-lg';
+                li.innerHTML = `
+                    <span>${name}</span>
+                    <div class="space-x-2">
+                        <button onclick="editSource('${name}')" class="text-blue-500 hover:underline">Edit</button>
+                        <button onclick="deleteSource('${name}')" class="text-red-500 hover:underline">Delete</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+        
+        function renderDestinationsPanel() {
+            const panel = document.getElementById('destinations-panel');
+            let contractorOptions = Object.keys(appData.contractors).sort().map(c => `<option value="${c}">${c}</option>`).join('');
+
+             panel.innerHTML = `
+                <div class="mb-6 p-4 border rounded-lg bg-gray-50">
+                    <h3 class="font-semibold mb-2">Add New Destination</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <select id="new-destination-contractor" class="p-2 border rounded-md">${contractorOptions}</select>
+                        <input type="text" id="new-destination-name" placeholder="Destination Name" class="p-2 border rounded-md">
+                    </div>
+                     <button onclick="addDestination()" class="mt-2 px-4 py-2 w-full bg-blue-600 text-white rounded-md hover:bg-blue-700">Add Destination</button>
+                </div>
+                <div>
+                    <h3 class="font-semibold mb-2">Existing Destinations by Contractor</h3>
+                    <div id="destination-list" class="space-y-4"></div>
+                </div>
+            `;
+             const destListDiv = panel.querySelector('#destination-list');
+            Object.keys(appData.contractors).sort().forEach(contractorName => {
+                const contractor = appData.contractors[contractorName];
+                if(contractor.destinations && contractor.destinations.length > 0) {
+                     let destHTML = contractor.destinations.map(dest => `
+                        <li class="flex justify-between items-center p-2 bg-gray-50 border-l-4 border-gray-300">
+                            <span>${dest}</span>
+                            <div class="space-x-2">
+                                <button onclick="editDestination('${contractorName}', '${dest}')" class="text-blue-500 hover:underline">Edit</button>
+                                <button onclick="deleteDestination('${contractorName}', '${dest}')" class="text-red-500 hover:underline">Delete</button>
+                            </div>
+                        </li>
+                    `).join('');
+                    destListDiv.innerHTML += `
+                        <div class="p-3 bg-white border rounded-lg">
+                           <h4 class="font-bold text-lg mb-2">${contractorName}</h4>
+                           <ul class="space-y-1">${destHTML}</ul>
+                        </div>
+                    `;
+                }
+            });
+        }
+        
+        // --- Management Functions ---
+        function addContractor() { /* ... */ }
+        function editContractor(oldName) { /* ... */ }
+        function deleteContractor(name) { /* ... */ }
+        // ... other management functions for trucks, sources, destinations ...
 
         function setTodayDate() {
             const today = new Date();
@@ -1191,6 +1429,147 @@
         document.getElementById('clear-log-btn').addEventListener('click', clearLog);
         settingsBtn.addEventListener('click', openSettingsModal);
         closeSettingsBtn.addEventListener('click', closeSettingsModal);
+        settingsTabs.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (e.target.classList.contains('tab-item')) {
+                document.querySelectorAll('.tab-item').forEach(tab => {
+                    tab.classList.remove('text-blue-600', 'border-blue-600');
+                    tab.classList.add('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                });
+                e.target.classList.add('text-blue-600', 'border-blue-600');
+                e.target.classList.remove('text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                renderSettingsPanels(e.target.dataset.panel);
+            }
+        });
+        
+        // Placeholder for full settings management functions
+        
+        function addContractor() {
+            const name = document.getElementById('new-contractor-name').value.trim();
+            if (!name) {
+                alert("Contractor name cannot be empty.");
+                return;
+            }
+            if (appData.contractors[name]) {
+                alert("Contractor already exists.");
+                return;
+            }
+            appData.contractors[name] = { trucks: [], destinations: [] };
+            saveData();
+            renderContractorsPanel();
+        }
+        function editContractor(oldName) {
+            const newName = prompt("Enter the new name for the contractor:", oldName);
+            if (newName && newName.trim() !== oldName) {
+                if (appData.contractors[newName]) {
+                    alert("A contractor with this name already exists.");
+                    return;
+                }
+                const data = appData.contractors[oldName];
+                delete appData.contractors[oldName];
+                appData.contractors[newName] = data;
+                saveData();
+                renderContractorsPanel();
+            }
+        }
+        function deleteContractor(name) {
+            if (confirm(`Are you sure you want to delete contractor "${name}"? This will also delete all associated trucks and destinations.`)) {
+                delete appData.contractors[name];
+                saveData();
+                renderContractorsPanel();
+            }
+        }
+        function addTruck() {
+            const contractor = document.getElementById('new-truck-contractor').value;
+            const license = document.getElementById('new-truck-license').value.trim();
+            const capacity = document.getElementById('new-truck-capacity').value;
+            if (!contractor || !license) {
+                alert("Please select a contractor and provide a license number.");
+                return;
+            }
+            if (appData.contractors[contractor].trucks.some(t => t.license === license)) {
+                alert("This license number already exists for this contractor.");
+                return;
+            }
+            appData.contractors[contractor].trucks.push({ license, capacity: capacity ? parseFloat(capacity) : null });
+            saveData();
+            renderTrucksPanel();
+        }
+        function editTruck(contractor, license) {
+            const truck = appData.contractors[contractor].trucks.find(t => t.license === license);
+            const newCapacity = prompt(`Enter new capacity for truck ${license}:`, truck.capacity || '');
+            if (newCapacity !== null) {
+                truck.capacity = newCapacity ? parseFloat(newCapacity) : null;
+                saveData();
+                renderTrucksPanel();
+            }
+        }
+        function deleteTruck(contractor, license) {
+            if (confirm(`Are you sure you want to delete truck ${license}?`)) {
+                const trucks = appData.contractors[contractor].trucks;
+                const index = trucks.findIndex(t => t.license === license);
+                if (index > -1) {
+                    trucks.splice(index, 1);
+                    saveData();
+                    renderTrucksPanel();
+                }
+            }
+        }
+        function addSource() {
+            const name = document.getElementById('new-source-name').value.trim();
+            if (!name) { alert("Source name cannot be empty."); return; }
+            if (appData.sources.includes(name)) { alert("Source already exists."); return; }
+            appData.sources.push(name);
+            saveData();
+            renderSourcesPanel();
+        }
+        function editSource(oldName) {
+            const newName = prompt("Enter new name for source:", oldName);
+            if (newName && newName.trim() !== oldName) {
+                 const index = appData.sources.indexOf(oldName);
+                 if (index > -1) {
+                    appData.sources[index] = newName.trim();
+                    saveData();
+                    renderSourcesPanel();
+                 }
+            }
+        }
+        function deleteSource(name) {
+            if (confirm(`Are you sure you want to delete source "${name}"?`)) {
+                appData.sources = appData.sources.filter(s => s !== name);
+                saveData();
+                renderSourcesPanel();
+            }
+        }
+        function addDestination() {
+            const contractor = document.getElementById('new-destination-contractor').value;
+            const name = document.getElementById('new-destination-name').value.trim();
+            if (!contractor || !name) { alert("Please select a contractor and enter a destination name."); return; }
+            if (appData.contractors[contractor].destinations.includes(name)) { alert("Destination already exists for this contractor."); return; }
+            appData.contractors[contractor].destinations.push(name);
+            saveData();
+            renderDestinationsPanel();
+        }
+        function editDestination(contractor, oldName) {
+            const newName = prompt("Enter new name for destination:", oldName);
+            if (newName && newName.trim() !== oldName) {
+                const destinations = appData.contractors[contractor].destinations;
+                const index = destinations.indexOf(oldName);
+                if (index > -1) {
+                    destinations[index] = newName.trim();
+                    saveData();
+                    renderDestinationsPanel();
+                }
+            }
+        }
+        function deleteDestination(contractor, name) {
+            if (confirm(`Are you sure you want to delete destination "${name}" for ${contractor}?`)) {
+                const destinations = appData.contractors[contractor].destinations;
+                appData.contractors[contractor].destinations = destinations.filter(d => d !== name);
+                saveData();
+                renderDestinationsPanel();
+            }
+        }
 
     </script>
 </body>
