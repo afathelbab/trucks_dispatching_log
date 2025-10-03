@@ -287,7 +287,7 @@
     <!-- Settings Modal -->
     <div id="settings-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden opacity-0">
         <div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto transform scale-95">
-            <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+            <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center z-10">
                 <h2 class="text-xl font-bold">Settings</h2>
                 <button id="close-settings-btn" class="p-2 rounded-full hover:bg-gray-200">
                      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
@@ -297,10 +297,10 @@
                  <!-- Tabs -->
                 <div class="border-b border-gray-200">
                     <nav id="settings-tabs" class="flex space-x-4" aria-label="Tabs">
-                        <a href="#contractors-panel" class="tab-item text-blue-600 border-blue-600 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Contractors</a>
-                        <a href="#trucks-panel" class="tab-item text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Trucks</a>
-                        <a href="#sources-panel" class="tab-item text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Sources</a>
-                        <a href="#destinations-panel" class="tab-item text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Destinations</a>
+                        <a href="#contractors-panel" data-panel="contractors-panel" class="tab-item text-blue-600 border-blue-600 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Contractors</a>
+                        <a href="#trucks-panel" data-panel="trucks-panel" class="tab-item text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Trucks</a>
+                        <a href="#sources-panel" data-panel="sources-panel" class="tab-item text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Sources</a>
+                        <a href="#destinations-panel" data-panel="destinations-panel" class="tab-item text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Destinations</a>
                     </nav>
                 </div>
                  <div id="settings-panels" class="mt-6">
@@ -392,6 +392,7 @@
         const settingsBtn = document.getElementById('settings-btn');
         const settingsModal = document.getElementById('settings-modal');
         const closeSettingsBtn = document.getElementById('close-settings-btn');
+        const settingsTabs = document.getElementById('settings-tabs');
         const reportContractorSelect = document.getElementById('report-contractor');
         const reportLicenseSelect = document.getElementById('report-license');
         const generateTruckReportBtn = document.getElementById('generate-truck-report-btn');
@@ -409,6 +410,8 @@
 
         function saveData() {
             localStorage.setItem('appData', JSON.stringify(appData));
+            // After saving, refresh all dropdowns to reflect changes everywhere
+            populateAllDropdowns();
         }
         
         function populateAllDropdowns() {
@@ -418,26 +421,30 @@
         }
 
         function populateContractors() {
+            const currentVal = contractorSelect.value;
             contractorSelect.innerHTML = '<option value="">-- Select a Contractor --</option>';
             const contractors = Object.keys(appData.contractors);
-            contractors.forEach(c => {
+            contractors.sort().forEach(c => {
                 const option = new Option(c, c);
                 contractorSelect.add(option);
             });
+            contractorSelect.value = currentVal;
         }
         
         function populateSources() {
+            const currentVal = sourceSelect.value;
             sourceSelect.innerHTML = '<option value="">-- Select a Source --</option>';
-            appData.sources.forEach(s => {
+            appData.sources.sort().forEach(s => {
                 const option = new Option(s, s);
                 sourceSelect.add(option);
             });
+            sourceSelect.value = currentVal;
         }
         
         function populateReportContractors() {
             reportContractorSelect.innerHTML = '<option value="">-- Select a Contractor --</option>';
             const contractors = Object.keys(appData.contractors);
-            contractors.forEach(c => {
+            contractors.sort().forEach(c => {
                 const option = new Option(c, c);
                 reportContractorSelect.add(option);
             });
@@ -519,17 +526,21 @@
                 const contractorData = appData.contractors[selectedContractor];
                 
                 // Populate licenses
-                contractorData.trucks.forEach(truck => {
-                    const option = new Option(truck.license, truck.license);
-                    licenseSelect.add(option);
-                });
+                if (contractorData.trucks) {
+                    contractorData.trucks.forEach(truck => {
+                        const option = new Option(truck.license, truck.license);
+                        licenseSelect.add(option);
+                    });
+                }
                 licenseSelect.disabled = false;
                 
                 // Populate destinations
-                 contractorData.destinations.forEach(dest => {
-                    const option = new Option(dest, dest);
-                    destinationSelect.add(option);
-                });
+                if(contractorData.destinations) {
+                    contractorData.destinations.forEach(dest => {
+                        const option = new Option(dest, dest);
+                        destinationSelect.add(option);
+                    });
+                }
                 destinationSelect.disabled = false;
             }
         });
@@ -540,10 +551,12 @@
             reportLicenseSelect.disabled = true;
             if (selectedContractor) {
                 const contractorData = appData.contractors[selectedContractor];
-                 contractorData.trucks.forEach(truck => {
-                    const option = new Option(truck.license, truck.license);
-                    reportLicenseSelect.add(option);
-                });
+                 if(contractorData.trucks) {
+                    contractorData.trucks.forEach(truck => {
+                        const option = new Option(truck.license, truck.license);
+                        reportLicenseSelect.add(option);
+                    });
+                 }
                 reportLicenseSelect.disabled = false;
             }
         });
