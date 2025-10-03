@@ -48,6 +48,12 @@
         .table-container::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        .modal-content {
+            transition: transform 0.25s ease;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -199,6 +205,36 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Truck Specific Reporting Section -->
+        <div class="mt-12">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                Truck History Report
+            </h2>
+            <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div>
+                        <label for="report-contractor" class="block text-sm font-medium text-gray-700 mb-1">Contractor</label>
+                        <select id="report-contractor" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition"></select>
+                    </div>
+                    <div>
+                        <label for="report-license" class="block text-sm font-medium text-gray-700 mb-1">License Number</label>
+                        <select id="report-license" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" disabled></select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4 md:col-span-1">
+                         <input type="date" id="truck-report-start-date" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                         <input type="date" id="truck-report-end-date" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                    </div>
+                     <button id="generate-truck-report-btn" class="md:col-span-3 w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition">
+                        Generate Truck Report
+                    </button>
+                </div>
+                 <div id="truck-report-output" class="mt-8 hidden">
+                    <!-- Truck report will be injected here -->
+                </div>
+            </div>
+        </div>
 
 
         <!-- Data Log Table -->
@@ -208,9 +244,17 @@
                     <svg class="w-6 h-6 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     Dispatch Log
                 </h2>
-                <button id="generate-data-btn" class="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition">
-                    Generate Test Data
-                </button>
+                <div class="flex gap-2">
+                    <button id="settings-btn" class="p-2 bg-gray-200 text-gray-700 rounded-lg shadow-sm hover:bg-gray-300 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </button>
+                    <button id="generate-data-btn" class="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition">
+                        Generate Test Data
+                    </button>
+                    <button id="clear-log-btn" class="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-red-700 transition">
+                        Clear Log
+                    </button>
+                </div>
             </div>
             <div class="bg-white rounded-2xl shadow-lg p-4 md:p-6 table-container">
                 <table class="w-full text-left">
@@ -240,8 +284,45 @@
 
     </div>
 
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden opacity-0">
+        <div class="modal-content bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto transform scale-95">
+            <div class="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+                <h2 class="text-xl font-bold">Settings</h2>
+                <button id="close-settings-btn" class="p-2 rounded-full hover:bg-gray-200">
+                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                 <!-- Tabs -->
+                <div class="border-b border-gray-200">
+                    <nav id="settings-tabs" class="flex space-x-4" aria-label="Tabs">
+                        <a href="#contractors-panel" class="tab-item text-blue-600 border-blue-600 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Contractors</a>
+                        <a href="#trucks-panel" class="tab-item text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Trucks</a>
+                        <a href="#sources-panel" class="tab-item text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Sources</a>
+                        <a href="#destinations-panel" class="tab-item text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm">Destinations</a>
+                    </nav>
+                </div>
+                 <div id="settings-panels" class="mt-6">
+                    <!-- Contractors Panel -->
+                    <div id="contractors-panel" class="settings-panel"></div>
+                     <!-- Trucks Panel -->
+                    <div id="trucks-panel" class="settings-panel hidden"></div>
+                    <!-- Sources Panel -->
+                    <div id="sources-panel" class="settings-panel hidden"></div>
+                    <!-- Destinations Panel -->
+                    <div id="destinations-panel" class="settings-panel hidden"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
-        const data = {
+        // Store the main data object in a variable that can be updated.
+        let appData;
+
+        const initialData = {
             contractors: {
                 "Elsamy - السامي": {
                     trucks: [
@@ -271,7 +352,7 @@
                         { license: "3467-1429", capacity: 55 }, { license: "3128-8237", capacity: 51 },
                         { license: "2518-9576", capacity: 52 }, { license: "5812-5164", capacity: 52 },
                         { license: "9583-5368", capacity: 44 }, { license: "5397-1876", capacity: 55 },
-                        { license: "9568-5746", capacity: 48 },  { license: "5746-9568", capacity: 55}
+                        { license: "9568-5746", capacity: 48 }, { license: "5746-9568", capacity: 55}
                     ],
                     destinations: ["Abu Madi - أبو ماضي", "Elaalamya - العالمية"]
                 },
@@ -307,13 +388,38 @@
         const reportStartDateInput = document.getElementById('report-start-date');
         const reportEndDateInput = document.getElementById('report-end-date');
         const reportOutput = document.getElementById('report-output');
+        const clearLogBtn = document.getElementById('clear-log-btn');
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const closeSettingsBtn = document.getElementById('close-settings-btn');
+        const reportContractorSelect = document.getElementById('report-contractor');
+        const reportLicenseSelect = document.getElementById('report-license');
+        const generateTruckReportBtn = document.getElementById('generate-truck-report-btn');
+        const truckReportOutput = document.getElementById('truck-report-output');
+
 
         let currentStep = 1;
         let dispatchLog = [];
         let reportCharts = {};
 
+        function loadData() {
+            const savedData = localStorage.getItem('appData');
+            appData = savedData ? JSON.parse(savedData) : JSON.parse(JSON.stringify(initialData));
+        }
+
+        function saveData() {
+            localStorage.setItem('appData', JSON.stringify(appData));
+        }
+        
+        function populateAllDropdowns() {
+            populateContractors();
+            populateSources();
+            populateReportContractors();
+        }
+
         function populateContractors() {
-            const contractors = Object.keys(data.contractors);
+            contractorSelect.innerHTML = '<option value="">-- Select a Contractor --</option>';
+            const contractors = Object.keys(appData.contractors);
             contractors.forEach(c => {
                 const option = new Option(c, c);
                 contractorSelect.add(option);
@@ -321,9 +427,19 @@
         }
         
         function populateSources() {
-            data.sources.forEach(s => {
+            sourceSelect.innerHTML = '<option value="">-- Select a Source --</option>';
+            appData.sources.forEach(s => {
                 const option = new Option(s, s);
                 sourceSelect.add(option);
+            });
+        }
+        
+        function populateReportContractors() {
+            reportContractorSelect.innerHTML = '<option value="">-- Select a Contractor --</option>';
+            const contractors = Object.keys(appData.contractors);
+            contractors.forEach(c => {
+                const option = new Option(c, c);
+                reportContractorSelect.add(option);
             });
         }
 
@@ -389,7 +505,7 @@
             licenseSelect.disabled = true;
             destinationSelect.disabled = true;
 
-            if (selectedContractor.includes("Petrotreatment")) {
+            if (selectedContractor && selectedContractor.includes("Petrotreatment")) {
                 capacityInput.readOnly = false;
                 capacityInput.classList.remove('bg-gray-200');
                 capacityInput.placeholder = 'Enter capacity manually';
@@ -400,7 +516,7 @@
             }
 
             if (selectedContractor) {
-                const contractorData = data.contractors[selectedContractor];
+                const contractorData = appData.contractors[selectedContractor];
                 
                 // Populate licenses
                 contractorData.trucks.forEach(truck => {
@@ -417,6 +533,20 @@
                 destinationSelect.disabled = false;
             }
         });
+        
+        reportContractorSelect.addEventListener('change', () => {
+            const selectedContractor = reportContractorSelect.value;
+            reportLicenseSelect.innerHTML = '<option value="">-- Select License --</option>';
+            reportLicenseSelect.disabled = true;
+            if (selectedContractor) {
+                const contractorData = appData.contractors[selectedContractor];
+                 contractorData.trucks.forEach(truck => {
+                    const option = new Option(truck.license, truck.license);
+                    reportLicenseSelect.add(option);
+                });
+                reportLicenseSelect.disabled = false;
+            }
+        });
 
         licenseSelect.addEventListener('change', () => {
             const selectedContractor = contractorSelect.value;
@@ -424,7 +554,7 @@
             capacityInput.value = '';
 
             if (selectedContractor && selectedLicense) {
-                const truck = data.contractors[selectedContractor].trucks.find(t => t.license === selectedLicense);
+                const truck = appData.contractors[selectedContractor].trucks.find(t => t.license === selectedLicense);
                 if (truck && truck.capacity) {
                     capacityInput.value = truck.capacity;
                 }
@@ -467,7 +597,9 @@
         });
 
         function destroyCharts() {
-            Object.values(reportCharts).forEach(chart => chart.destroy());
+            Object.values(reportCharts).forEach(chart => {
+                if (chart) chart.destroy();
+            });
             reportCharts = {};
         }
 
@@ -737,11 +869,12 @@
             function drawChart() {
                 const data = google.visualization.arrayToDataTable(dataArray);
 
-                const contractorColors = {
-                    "Elsamy - السامي": '#3B82F6', // Blue
-                    "Elbassyouny - البسيوني": '#10B981', // Green
-                    "Petrotreatment - بتروتريتمنت": '#F59E0B' // Orange
-                };
+                const contractorNames = Object.keys(appData.contractors);
+                const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+                const contractorColors = {};
+                contractorNames.forEach((name, i) => {
+                    contractorColors[name] = colors[i % colors.length];
+                });
                 
                 const uniqueNodes = Array.from(new Set(dataArray.slice(1).flatMap(row => [row[0], row[1]])));
                 
@@ -943,15 +1076,15 @@
             const testLog = [];
             const shifts = ["Day Shift", "Night Shift - Before Midnight", "Night Shift After Midnight"];
             const statuses = ["Dispatched", "Verified"];
-            const contractorNames = Object.keys(data.contractors);
+            const contractorNames = Object.keys(appData.contractors);
 
             for (let i = 0; i < 75; i++) {
                 const randomContractorName = contractorNames[Math.floor(Math.random() * contractorNames.length)];
-                const contractorData = data.contractors[randomContractorName];
+                const contractorData = appData.contractors[randomContractorName];
                 
                 const randomTruck = contractorData.trucks[Math.floor(Math.random() * contractorData.trucks.length)];
                 const randomDestination = contractorData.destinations[Math.floor(Math.random() * contractorData.destinations.length)];
-                const randomSource = data.sources[Math.floor(Math.random() * data.sources.length)];
+                const randomSource = appData.sources[Math.floor(Math.random() * appData.sources.length)];
                 const randomShift = shifts[Math.floor(Math.random() * shifts.length)];
                 const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
 
@@ -981,6 +1114,39 @@
             renderTable();
             alert("Test data has been generated.");
         }
+        
+        function clearLog() {
+            if (confirm("Are you sure you want to permanently delete all log entries? This cannot be undone.")) {
+                dispatchLog = [];
+                localStorage.removeItem('dispatchLog');
+                renderTable();
+                alert("The dispatch log has been cleared.");
+            }
+        }
+        
+        // --- Settings Modal Logic ---
+        function openSettingsModal() {
+            renderSettingsPanels();
+            settingsModal.classList.remove('hidden');
+            setTimeout(() => settingsModal.classList.remove('opacity-0'), 10);
+            setTimeout(() => settingsModal.querySelector('.modal-content').classList.remove('scale-95'), 10);
+        }
+        
+        function closeSettingsModal() {
+            settingsModal.querySelector('.modal-content').classList.add('scale-95')
+            settingsModal.classList.add('opacity-0')
+            setTimeout(() => settingsModal.classList.add('hidden'), 250);
+        }
+        
+        function renderSettingsPanels() {
+             // Render Contractors
+            const contractorsPanel = document.getElementById('contractors-panel');
+            // ... logic to render contractors form and list ...
+
+            // Render Trucks
+            const trucksPanel = document.getElementById('trucks-panel');
+            // ... logic to render trucks form and list ...
+        }
 
 
         function setTodayDate() {
@@ -992,24 +1158,28 @@
             dispatchDateInput.value = todayString;
             reportStartDateInput.value = todayString;
             reportEndDateInput.value = todayString;
+            document.getElementById('truck-report-start-date').value = todayString;
+            document.getElementById('truck-report-end-date').value = todayString;
         }
 
         window.onload = () => {
+            loadData();
             const savedLog = localStorage.getItem('dispatchLog');
             if (savedLog) {
                 dispatchLog = JSON.parse(savedLog);
             }
-            populateContractors();
-            populateSources();
+            populateAllDropdowns();
             renderTable();
             updateStepIndicator(1);
             setTodayDate();
         };
 
         document.getElementById('generate-data-btn').addEventListener('click', generateTestData);
+        document.getElementById('clear-log-btn').addEventListener('click', clearLog);
+        settingsBtn.addEventListener('click', openSettingsModal);
+        closeSettingsBtn.addEventListener('click', closeSettingsModal);
+
     </script>
 </body>
 </html>
-
-
 
