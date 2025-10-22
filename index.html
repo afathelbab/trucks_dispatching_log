@@ -259,6 +259,35 @@
                     </button>
                 </div>
             </div>
+             <!-- Search and Filter Section -->
+            <div class="mb-4 p-4 bg-white rounded-2xl shadow-lg">
+                <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
+                    <div class="md:col-span-2">
+                        <label for="search-log" class="block text-sm font-medium text-gray-700">Search License</label>
+                        <input type="text" id="search-log" placeholder="e.g., 1234-5678" class="mt-1 w-full p-2 bg-gray-100 border-gray-300 rounded-lg">
+                    </div>
+                    <div>
+                        <label for="filter-contractor" class="block text-sm font-medium text-gray-700">Contractor</label>
+                        <select id="filter-contractor" class="mt-1 w-full p-2 bg-gray-100 border-gray-300 rounded-lg"></select>
+                    </div>
+                    <div>
+                        <label for="filter-source" class="block text-sm font-medium text-gray-700">Source</label>
+                        <select id="filter-source" class="mt-1 w-full p-2 bg-gray-100 border-gray-300 rounded-lg"></select>
+                    </div>
+                    <div>
+                        <label for="filter-destination" class="block text-sm font-medium text-gray-700">Destination</label>
+                        <select id="filter-destination" class="mt-1 w-full p-2 bg-gray-100 border-gray-300 rounded-lg"></select>
+                    </div>
+                    <div>
+                        <label for="filter-status" class="block text-sm font-medium text-gray-700">Status</label>
+                        <select id="filter-status" class="mt-1 w-full p-2 bg-gray-100 border-gray-300 rounded-lg">
+                            <option value="">All Statuses</option>
+                            <option value="Dispatched">Dispatched</option>
+                            <option value="Verified">Verified</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
             <div class="bg-white rounded-2xl shadow-lg p-4 md:p-6 table-container">
                 <table class="w-full text-left">
                     <thead class="bg-gray-100">
@@ -400,6 +429,11 @@
         const reportLicenseSelect = document.getElementById('report-license');
         const generateTruckReportBtn = document.getElementById('generate-truck-report-btn');
         const truckReportOutput = document.getElementById('truck-report-output');
+        const searchLogInput = document.getElementById('search-log');
+        const filterContractorSelect = document.getElementById('filter-contractor');
+        const filterSourceSelect = document.getElementById('filter-source');
+        const filterDestinationSelect = document.getElementById('filter-destination');
+        const filterStatusSelect = document.getElementById('filter-status');
 
 
         let currentStep = 1;
@@ -415,7 +449,9 @@
             localStorage.setItem('appData', JSON.stringify(appData));
             // After saving, refresh all dropdowns to reflect changes everywhere
             populateAllDropdowns();
+            populateLogFilters();
         }
+        
         
         function populateAllDropdowns() {
             populateContractors();
@@ -442,6 +478,31 @@
                 sourceSelect.add(option);
             });
             sourceSelect.value = currentVal;
+        }
+
+                
+        function populateLogFilters() {
+            filterContractorSelect.innerHTML = '<option value="">All Contractors</option>';
+            Object.keys(appData.contractors).sort().forEach(c => {
+                const option = new Option(c, c);
+                filterContractorSelect.add(option);
+            });
+
+            filterSourceSelect.innerHTML = '<option value="">All Sources</option>';
+            appData.sources.sort().forEach(s => {
+                const option = new Option(s, s);
+                filterSourceSelect.add(option);
+            });
+            
+            filterDestinationSelect.innerHTML = '<option value="">All Destinations</option>';
+            const allDestinations = new Set();
+            Object.values(appData.contractors).forEach(c => {
+                c.destinations.forEach(d => allDestinations.add(d));
+            });
+            Array.from(allDestinations).sort().forEach(d => {
+                const option = new Option(d, d);
+                filterDestinationSelect.add(option);
+            });
         }
         
         function populateReportContractors() {
@@ -1189,13 +1250,14 @@
             });
         }
 
-        function renderTable() {
+        function renderTable(logData) {
+            const dataToRender = logData || dispatchLog;
             logTableBody.innerHTML = '';
-            if (dispatchLog.length === 0) {
+            if (dataToRender.length === 0) {
                 emptyLogMessage.style.display = 'block';
             } else {
                  emptyLogMessage.style.display = 'none';
-                 dispatchLog.forEach((entry, index) => {
+                 dataToRender.forEach((entry, index) => {
                     const row = document.createElement('tr');
                     row.className = `border-b hover:bg-gray-50 ${entry.status === 'Verified' ? 'bg-green-50' : ''}`;
                     
@@ -1226,7 +1288,7 @@
             if (entryIndex !== -1) {
                 dispatchLog[entryIndex].status = 'Dispatched';
                 localStorage.setItem('dispatchLog', JSON.stringify(dispatchLog));
-                renderTable();
+                applyFiltersAndRender();
             }
         }
 
@@ -1235,7 +1297,7 @@
             if (entryIndex !== -1) {
                 dispatchLog[entryIndex].status = 'Verified';
                 localStorage.setItem('dispatchLog', JSON.stringify(dispatchLog));
-                renderTable();
+                applyFiltersAndRender();
             }
         }
 
@@ -1281,10 +1343,10 @@
 
             dispatchLog.unshift(newEntry); // Add to the beginning of the array
             localStorage.setItem('dispatchLog', JSON.stringify(dispatchLog));
-            renderTable();
+            applyFiltersAndRender();
             resetForm();
         });
-
+        
         function generateTestData() {
             if (!confirm("Are you sure you want to replace all existing data with test data? This cannot be undone.")) {
                 return;
@@ -1332,7 +1394,7 @@
 
             dispatchLog = testLog;
             localStorage.setItem('dispatchLog', JSON.stringify(dispatchLog));
-            renderTable();
+            applyFiltersAndRender();
             alert("Test data has been generated.");
         }
         
@@ -1340,7 +1402,7 @@
             if (confirm("Are you sure you want to permanently delete all log entries? This cannot be undone.")) {
                 dispatchLog = [];
                 localStorage.removeItem('dispatchLog');
-                renderTable();
+                applyFiltersAndRender();
                 alert("The dispatch log has been cleared.");
             }
         }
@@ -1516,6 +1578,14 @@
                 }
             });
         }
+
+         // Event Listeners for filters
+        searchLogInput.addEventListener('input', applyFiltersAndRender);
+        filterContractorSelect.addEventListener('change', applyFiltersAndRender);
+        filterSourceSelect.addEventListener('change', applyFiltersAndRender);
+        filterDestinationSelect.addEventListener('change', applyFiltersAndRender);
+        filterStatusSelect.addEventListener('change', applyFiltersAndRender);
+        
         
         // --- Management Functions ---
         function addContractor() {
@@ -1645,6 +1715,27 @@
             }
         }
 
+         // --- Filter and Search Logic ---
+        function applyFiltersAndRender() {
+            const searchTerm = searchLogInput.value.toLowerCase();
+            const contractorFilter = filterContractorSelect.value;
+            const sourceFilter = filterSourceSelect.value;
+            const destinationFilter = filterDestinationSelect.value;
+            const statusFilter = filterStatusSelect.value;
+
+            let filteredLog = dispatchLog.filter(entry => {
+                const licenseMatch = !searchTerm || entry.license.toLowerCase().includes(searchTerm);
+                const contractorMatch = !contractorFilter || entry.contractor === contractorFilter;
+                const sourceMatch = !sourceFilter || entry.source === sourceFilter;
+                const destinationMatch = !destinationFilter || entry.destination === destinationFilter;
+                const statusMatch = !statusFilter || entry.status === statusFilter;
+
+                return licenseMatch && contractorMatch && sourceMatch && destinationMatch && statusMatch;
+            });
+
+            renderTable(filteredLog);
+        }
+
         function setTodayDate() {
             const today = new Date();
             const year = today.getFullYear();
@@ -1665,6 +1756,7 @@
                 dispatchLog = JSON.parse(savedLog);
             }
             populateAllDropdowns();
+            populateLogFilters();
             renderTable();
             updateStepIndicator(1);
             setTodayDate();
@@ -1690,5 +1782,6 @@
     </script>
 </body>
 </html>
+
 
 
