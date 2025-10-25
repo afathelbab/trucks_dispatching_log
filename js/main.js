@@ -12,13 +12,11 @@ class App {
 
     initialize() {
         document.addEventListener('DOMContentLoaded', () => {
-            // All modules are now loaded and ready.
-            // Now, explicitly load data and notify the UI.
             stateManager.loadData();
             uiController.setInitialDate();
             eventBus.emit('dataUpdated');
             eventBus.emit('logUpdated');
-            settingsController.switchTab('contractors'); // Ensure a tab is active on modal open
+            settingsController.switchTab('contractors');
         });
     }
 }

@@ -1,10 +1,5 @@
-// Export functionality for PDF and Excel
 class ExportController {
     constructor() {
-        this.bindExportButtons();
-    }
-
-    bindExportButtons() {
         document.addEventListener('click', (e) => {
             if (e.target.matches('[data-export="pdf"]')) {
                 this.exportToPDF();
@@ -14,101 +9,50 @@ class ExportController {
         });
     }
 
-    async exportToPDF() {
+    exportToPDF() {
         const { jsPDF } = window.jspdf;
-        if (!jsPDF.autoTable) {
-            console.error("jsPDF-AutoTable is required. Please include it in your project.");
-            alert("PDF export functionality is not fully configured. Please contact support.");
-            return;
-        }
-
-        const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
         const reportContent = document.getElementById('report-output');
         const reportTitle = reportContent.querySelector('h3').innerText;
 
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const margin = 15;
-        let y = margin;
+        const exportButtons = reportContent.querySelector('.flex.justify-between.items-center');
+        if (exportButtons) exportButtons.style.display = 'none';
 
-        // --- Helper function to add elements and manage pages ---
-        const addElement = async (element, isChart = false) => {
-            if (!element || element.offsetParent === null) return; // Skip hidden or non-existent elements
+        html2canvas(reportContent, { scale: 2, useCORS: true }).then(canvas => {
+            if (exportButtons) exportButtons.style.display = 'flex';
 
-            const canvas = await html2canvas(element, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
             const imgData = canvas.toDataURL('image/png');
-            const imgWidth = isChart ? pageWidth - margin * 2 : (pageWidth - margin * 2) / 2;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-            if (y + imgHeight + margin > pageHeight) {
-                pdf.addPage();
-                y = margin;
-            }
-
-            pdf.addImage(imgData, 'PNG', margin, y, imgWidth, imgHeight);
-            y += imgHeight + 10; // Add some space after the element
-        };
-
-        // --- Add Report Title ---
-        pdf.setFontSize(18);
-        pdf.text(reportTitle, margin, y);
-        y += 10;
-
-        // --- Add Summary Cards ---
-        const summaryCards = reportContent.querySelector('.grid.grid-cols-1.md\\:grid-cols-2');
-        if (summaryCards) {
-            const canvas = await html2canvas(summaryCards, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-            const imgData = canvas.toDataURL('image/png');
-            const imgWidth = pageWidth - margin * 2;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            pdf.addImage(imgData, 'PNG', margin, y, imgWidth, imgHeight);
-            y += imgHeight + 10;
-        }
-
-        // --- Add Charts ---
-        await addElement(reportContent.querySelector('#sankeyChart_div'), true);
-        await addElement(reportContent.querySelector('#trendChart').parentElement, true);
-
-        // --- Add Doughnut Charts and Tables ---
-        const breakdownSections = reportContent.querySelectorAll('.grid.grid-cols-1.lg\\:grid-cols-2');
-        for (const section of breakdownSections) {
-            const chartCanvas = section.querySelector('canvas');
-            const table = section.querySelector('table');
-
-            if (y + 80 > pageHeight) { // Estimate space for doughnut chart
-                pdf.addPage();
-                y = margin;
-            }
-
-            // Add chart
-            const chartImg = chartCanvas.toDataURL('image/png');
-            pdf.addImage(chartImg, 'PNG', margin, y, 80, 80);
-
-            // Add table next to chart
-            pdf.autoTable({
-                html: table,
-                startY: y,
-                startX: margin + 90,
-                theme: 'grid',
-                styles: { fontSize: 8 },
-                headStyles: { fillColor: [243, 244, 246] } // gray-100
+            const pdf = new jsPDF({
+                orientation: 'p',
+                unit: 'mm',
+                format: 'a4'
             });
 
-            y = Math.max(y + 90, pdf.autoTable.previous.finalY + 10);
-        }
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const ratio = canvasWidth / canvasHeight;
 
-        // --- Add Detailed Summary Table ---
-        const summaryTable = document.getElementById('summary-table');
-        if (summaryTable) {
-            if (y + 20 > pageHeight) { // Check if there's space for the table header
+            let imgWidth = pdfWidth - 20;
+            let imgHeight = imgWidth / ratio;
+            let heightLeft = imgHeight;
+            let position = 10;
+
+            pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+            heightLeft -= (pdfHeight - 20);
+
+            while (heightLeft > 0) {
+                position = -(imgHeight - heightLeft) + 10;
                 pdf.addPage();
-                y = margin;
+                pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
+                heightLeft -= (pdfHeight - 20);
             }
-            pdf.autoTable({ html: summaryTable, startY: y, theme: 'grid' });
-        }
 
-        // --- Save the PDF ---
-        pdf.save(`${reportTitle.replace(/ /g, '_')}.pdf`);
+            pdf.save(`${reportTitle.replace(/ /g, '_')}.pdf`);
+        }).catch(err => {
+            console.error("Error exporting to PDF:", err);
+            if (exportButtons) exportButtons.style.display = 'flex';
+        });
     }
 
     exportToExcel() {
