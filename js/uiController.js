@@ -4,6 +4,7 @@ class UIController {
         this.initializeElements();
         this.attachEventListeners();
         this.setupEventBusListeners();
+        this.currentStep = 1;
     }
 
     initializeElements() {
@@ -46,6 +47,7 @@ class UIController {
     attachEventListeners() {
         // Form listeners
         this.elements.contractorSelect.addEventListener('change', () => this.handleContractorChange());
+        this.elements.licenseSelect.addEventListener('change', () => this.handleLicenseChange());
         this.elements.submitBtn.addEventListener('click', () => this.handleSubmit());
 
         // Step navigation listeners
@@ -80,17 +82,19 @@ class UIController {
     
     populateAllDropdowns() {
         const contractors = stateManager.getContractors();
-        const locations = stateManager.getLocations();
+        const sources = stateManager.getSources();
         
         // Populate form dropdowns
         this.populateSelect(this.elements.contractorSelect, contractors, 'Select Contractor');
-        this.populateSelect(this.elements.sourceSelect, locations, 'Select Source');
-        this.populateSelect(this.elements.destinationSelect, locations, 'Select Destination');
+        this.populateSelect(this.elements.sourceSelect, sources, 'Select Source');
         
         // Populate filter dropdowns
         this.populateSelect(this.elements.filterContractorSelect, contractors, 'All Contractors');
-        this.populateSelect(this.elements.filterSourceSelect, locations, 'All Sources');
-        this.populateSelect(this.elements.filterDestinationSelect, locations, 'All Destinations');
+        this.populateSelect(this.elements.filterSourceSelect, sources, 'All Sources'); 
+        const allDestinations = stateManager.getAllDestinations();
+        this.populateSelect(this.elements.filterDestinationSelect, allDestinations, 'All Destinations');
+
+        // Note: Destination filter might need to be populated dynamically based on all available destinations
     }
     
     populateSelect(selectElement, options, defaultText) {
@@ -249,29 +253,39 @@ class UIController {
 
         handleContractorChange() {
         const selectedContractor = this.elements.contractorSelect.value;
-        const licenses = stateManager.getLicensesForContractor(selectedContractor);
+        const trucks = stateManager.getTrucksForContractor(selectedContractor);
+        const destinations = stateManager.getDestinationsForContractor(selectedContractor);
         
         // Clear and populate license dropdown
         this.elements.licenseSelect.innerHTML = '<option value="">Select License</option>';
-        licenses.forEach(license => {
+        trucks.forEach(truck => {
             const option = document.createElement('option');
-            option.value = license;
-            option.textContent = license;
+            option.value = truck.license;
+            option.textContent = truck.license;
             this.elements.licenseSelect.appendChild(option);
         });
         
-        // Update capacity field
+        // Clear and populate destination dropdown
+        this.elements.destinationSelect.innerHTML = '<option value="">Select Destination</option>';
+        destinations.forEach(dest => {
+            const option = document.createElement('option');
+            option.value = dest;
+            option.textContent = dest;
+            this.elements.destinationSelect.appendChild(option);
+        });
+
         this.elements.capacityInput.value = '';
         this.elements.licenseSelect.disabled = !selectedContractor;
-        this.elements.capacityInput.disabled = true;
+        this.elements.destinationSelect.disabled = !selectedContractor;
+        this.elements.capacityInput.readOnly = !selectedContractor.includes("Petrotreatment");
+        this.elements.capacityInput.classList.toggle('bg-gray-200', !selectedContractor.includes("Petrotreatment"));
     }
 
     handleLicenseChange() {
+        const selectedContractor = this.elements.contractorSelect.value;
         const selectedLicense = this.elements.licenseSelect.value;
-        const capacity = stateManager.getCapacityForLicense(selectedLicense);
-        
+        const capacity = stateManager.getCapacityForTruck(selectedContractor, selectedLicense);
         this.elements.capacityInput.value = capacity || '';
-        this.elements.capacityInput.disabled = !selectedLicense;
     }
 
     validateStep1() {
@@ -313,39 +327,34 @@ class UIController {
     }
 
     goToNextStep() {
-        const currentStep = parseInt(document.querySelector('.step:not([style*="display: none"])').getAttribute('data-step'));
-        
         // Validate current step
         let isValid = false;
-        switch (currentStep) {
+        switch (this.currentStep) {
             case 1:
                 isValid = this.validateStep1();
                 break;
             case 2:
                 isValid = this.validateStep2();
                 break;
-            case 3:
-                isValid = this.validateStep3();
-                break;
         }
         
         if (!isValid) return;
         
         // Hide current step and show next step
-        if (currentStep < 3) {
-            document.querySelector(`[data-step="${currentStep}"]`).style.display = 'none';
-            document.querySelector(`[data-step="${currentStep + 1}"]`).style.display = 'block';
-            this.updateStepIndicator(currentStep + 1);
+        if (this.currentStep < 3) {
+            document.getElementById(`step-${this.currentStep}`).classList.replace('visible-section', 'hidden-section');
+            this.currentStep++;
+            document.getElementById(`step-${this.currentStep}`).classList.replace('hidden-section', 'visible-section');
+            this.updateStepIndicator(this.currentStep);
         }
     }
 
     goToPreviousStep() {
-        const currentStep = parseInt(document.querySelector('.step:not([style*="display: none"])').getAttribute('data-step'));
-        
-        if (currentStep > 1) {
-            document.querySelector(`[data-step="${currentStep}"]`).style.display = 'none';
-            document.querySelector(`[data-step="${currentStep - 1}"]`).style.display = 'block';
-            this.updateStepIndicator(currentStep - 1);
+        if (this.currentStep > 1) {
+            document.getElementById(`step-${this.currentStep}`).classList.replace('visible-section', 'hidden-section');
+            this.currentStep--;
+            document.getElementById(`step-${this.currentStep}`).classList.replace('hidden-section', 'visible-section');
+            this.updateStepIndicator(this.currentStep);
         }
     }
 
@@ -374,19 +383,27 @@ class UIController {
         this.elements.sourceSelect.value = '';
         this.elements.destinationSelect.value = '';
         this.elements.shiftSelect.value = '';
-        this.elements.dispatchDateInput.value = '';
+        this.setInitialDate();
         
         // Reset step display
-        document.querySelectorAll('.step').forEach(step => {
-            step.style.display = step.getAttribute('data-step') === '1' ? 'block' : 'none';
-        });
+        this.goToPreviousStep(); // Go to step 2
+        this.goToPreviousStep(); // Go to step 1
         
         // Reset step indicators
         this.updateStepIndicator(1);
         
         // Disable dependent fields
         this.elements.licenseSelect.disabled = true;
-        this.elements.capacityInput.disabled = true;
+        this.elements.destinationSelect.disabled = true;
+    }
+
+    setInitialDate() {
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const todayString = `${year}-${month}-${day}`;
+        this.elements.dispatchDateInput.value = todayString;
     }
 }
 
