@@ -15,6 +15,8 @@ class StateManager {
         if (savedLog) {
             // Ensure IDs are numbers if they were saved as strings
             this.dispatchLog = JSON.parse(savedLog);
+        } else {
+            this.dispatchLog = []; // Initialize to an empty array if no log is saved
         }
     }
 
@@ -37,7 +39,6 @@ class StateManager {
             status: 'pending' // Initial status
         };
         this.dispatchLog.unshift(newEntry);
-        this.dispatchLog.unshift(entry);
         this.saveLog();
     }
 
@@ -59,7 +60,6 @@ class StateManager {
             return true;
         }
         return false;
-        }
     }
 
     clearLog() {
