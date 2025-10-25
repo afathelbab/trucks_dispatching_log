@@ -12,8 +12,13 @@ class ExportController {
     }
 
     async exportToPDF() {
-        const { jsPDF } = window.jspdf;
         const reportContent = document.getElementById('report-output');
+        if (reportContent.classList.contains('hidden')) {
+            alert("Please generate a report first.");
+            return;
+        }
+
+        const { jsPDF } = window.jspdf;
         const reportTitle = reportContent.querySelector('h3').innerText;
 
         const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
