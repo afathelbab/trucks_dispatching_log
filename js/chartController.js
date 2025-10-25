@@ -8,9 +8,19 @@ class ChartController {
 
     destroyCharts() {
         Object.values(this.reportCharts).forEach(chart => {
-            if (chart) chart.destroy();
+            if (chart) {
+                if (chart.destroy) {
+                    chart.destroy();
+                } else if (chart.clearChart) {
+                    chart.clearChart();
+                }
+            }
         });
         this.reportCharts = {};
+    }
+
+    getChart(chartId) {
+        return this.reportCharts[chartId];
     }
 
     createSankeyChart(dataArray) {
@@ -49,6 +59,7 @@ class ChartController {
 
         const chart = new google.visualization.Sankey(document.getElementById('sankeyChart_div'));
         chart.draw(data, options);
+        this.reportCharts['sankeyChart'] = chart;
     }
 
     createTrendChart(labels, truckData, capacityData) {
