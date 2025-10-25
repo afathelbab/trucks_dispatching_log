@@ -1,0 +1,56 @@
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.step-indicator {
+    transition: all 0.3s ease;
+}
+
+.form-section {
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+
+.hidden-section {
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+    position: absolute;
+}
+
+.visible-section {
+    opacity: 1;
+    transform: translateY(0);
+    position: static;
+}
+
+.table-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Custom scrollbar */
+.table-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.modal {
+    transition: opacity 0.25s ease;
+}
+
+.modal-content {
+    transition: transform 0.25s ease;
+}
