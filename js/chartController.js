@@ -1,3 +1,5 @@
+import stateManager from './stateManager.js';
+
 // Chart controller for managing all chart-related functionality
 class ChartController {
     constructor() {
@@ -15,7 +17,7 @@ class ChartController {
         if (dataArray.length <= 1) return;
 
         google.charts.load('current', {'packages':['sankey']});
-        google.charts.setOnLoadCallback(() => this.drawSankeyChart(dataArray));
+        google.charts.setOnLoadCallback(this.drawSankeyChart.bind(this, dataArray));
     }
 
     drawSankeyChart(dataArray) {

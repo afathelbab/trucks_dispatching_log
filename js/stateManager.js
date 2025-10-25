@@ -57,6 +57,16 @@ class StateManager {
         return false;
     }
 
+    updateLogEntry(id, updatedEntry) {
+        const entryIndex = this.dispatchLog.findIndex(entry => entry.id === id);
+        if (entryIndex !== -1) {
+            this.dispatchLog[entryIndex] = { ...this.dispatchLog[entryIndex], ...updatedEntry };
+            this.saveLog();
+            return true;
+        }
+        return false;
+    }
+
     deleteLogEntry(id) {
         const initialLength = this.dispatchLog.length;
         this.dispatchLog = this.dispatchLog.filter(entry => entry.id !== id);

@@ -48,6 +48,9 @@ class UIController {
             // Other buttons
             generateDataBtn: document.getElementById('generate-data-btn'),
             clearLogBtn: document.getElementById('clear-log-btn'),
+
+            // Report elements
+            reportContractorSelect: document.getElementById('report-contractor'),
         };
     }
 
@@ -93,7 +96,13 @@ class UIController {
                         stateManager.deleteLogEntry(logId);
                     }
                 } else if (action === 'edit') {
-                    console.log(`Edit log ${logId}`); // Placeholder
+                    const entry = stateManager.getLogEntry(logId);
+                    if (entry) {
+                        const newCapacity = prompt("Enter new capacity:", entry.capacity);
+                        if (newCapacity !== null) {
+                            stateManager.updateLogEntry(logId, { capacity: newCapacity });
+                        }
+                    }
                 }
                 return;
             }
@@ -124,6 +133,8 @@ class UIController {
         this.populateSelect(this.elements.filterSourceSelect, sources, 'All Sources'); 
         const allDestinations = stateManager.getAllDestinations();
         this.populateSelect(this.elements.filterDestinationSelect, allDestinations, 'All Destinations');
+
+        this.populateSelect(this.elements.reportContractorSelect, contractors, 'Select Contractor');
     }
     
     populateSelect(selectElement, options, defaultText) {

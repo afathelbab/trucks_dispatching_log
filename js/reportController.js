@@ -154,7 +154,7 @@ class ReportController {
                 }
             });
 
-        } else if (diffDays <= 31) { // Daily breakdown for up to a month
+        } else { // Daily breakdown
             reportTitle = `Report from ${startDate.toLocaleDateString('en-GB')} to ${endDate.toLocaleDateString('en-GB')}`;
             const dateMap = {};
             let currentDate = new Date(startDate);
@@ -175,55 +175,6 @@ class ReportController {
                     truckCountData[idx]++;
                     capacityData[idx] += parseFloat(entry.capacity || 0);
                 }
-            });
-        } else if (diffDays <= 182) { // Weekly breakdown for up to ~6 months
-            reportTitle = `Report from ${startDate.toLocaleDateString('en-GB')} to ${endDate.toLocaleDateString('en-GB')}`;
-            const weeklyData = {}; 
-
-            reportData.forEach(entry => {
-                const entryDate = this.parseDate(entry.date);
-                const day = entryDate.getDay();
-                const diff = entryDate.getDate() - day + (day === 0 ? -6 : 1);
-                const startOfWeek = new Date(entryDate.setDate(diff));
-                const weekKey = startOfWeek.toISOString().split('T')[0];
-
-                if (!weeklyData[weekKey]) {
-                    weeklyData[weekKey] = { trucks: 0, capacity: 0 };
-                }
-                weeklyData[weekKey].trucks++;
-                weeklyData[weekKey].capacity += parseFloat(entry.capacity || 0);
-            });
-
-            const sortedWeeks = Object.keys(weeklyData).sort();
-            sortedWeeks.forEach(weekKey => {
-                const date = new Date(weekKey);
-                date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
-                lineChartLabels.push(`W/C ${date.toLocaleDateString('en-GB')}`);
-                truckCountData.push(weeklyData[weekKey].trucks);
-                capacityData.push(weeklyData[weekKey].capacity);
-            });
-
-        } else { // Monthly breakdown
-            reportTitle = `Report from ${startDate.toLocaleDateString('en-GB')} to ${endDate.toLocaleDateString('en-GB')}`;
-            const monthlyData = {};
-            reportData.forEach(entry => {
-                const entryDate = this.parseDate(entry.date);
-                const monthKey = `${entryDate.getFullYear()}-${String(entryDate.getMonth() + 1).padStart(2, '0')}`;
-                if (!monthlyData[monthKey]) {
-                    monthlyData[monthKey] = { trucks: 0, capacity: 0 };
-                }
-                monthlyData[monthKey].trucks++;
-                monthlyData[monthKey].capacity += parseFloat(entry.capacity || 0);
-            });
-
-            const sortedMonths = Object.keys(monthlyData).sort();
-            sortedMonths.forEach(monthKey => {
-                const [year, month] = monthKey.split('-');
-                const labelDate = new Date(year, month - 1, 1);
-                const label = labelDate.toLocaleString('default', { month: 'short', year: 'numeric' });
-                lineChartLabels.push(label);
-                truckCountData.push(monthlyData[monthKey].trucks);
-                capacityData.push(monthlyData[monthKey].capacity);
             });
         }
 
