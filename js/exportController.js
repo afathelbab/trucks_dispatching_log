@@ -46,7 +46,7 @@ class ExportController {
             let y = margin;
 
             // --- Summary Cards ---
-            const summaryCards = reportContent.querySelector('.grid.grid-cols-1.md\:grid-cols-2');
+            const summaryCards = reportContent.querySelector('.summary-cards');
             if (summaryCards) {
                 const canvas = await html2canvas(summaryCards, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
                 const imgData = canvas.toDataURL('image/png');
@@ -94,7 +94,7 @@ class ExportController {
             }
 
             // --- Doughnut Charts and Tables ---
-            const breakdownSections = reportContent.querySelectorAll('.grid.grid-cols-1.lg\:grid-cols-2');
+            const breakdownSections = reportContent.querySelectorAll('.breakdown-section');
             for (const section of breakdownSections) {
                 const chartCanvas = section.querySelector('canvas');
                 const table = section.querySelector('table');

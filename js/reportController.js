@@ -208,7 +208,7 @@ class ReportController {
             </div>
             <hr class="my-8"/>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 summary-cards">
                <div class="bg-gray-100 p-4 rounded-lg">
                    <p class="text-sm text-gray-600">Total Trucks</p>
                    <p class="text-2xl font-bold">${totalTrucks}</p>
@@ -249,7 +249,7 @@ class ReportController {
     }
 
     createTableAndChart(title, dataObject, chartId) {
-        let content = `<div class="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">`;
+        let content = `<div class="mb-8 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center breakdown-section">`;
         content += `<div><canvas id="${chartId}"></canvas></div>`;
         let table = `<div><h4 class="font-semibold mb-2">${title}</h4><div class="overflow-x-auto"><table class="w-full text-sm">
             <thead class="bg-gray-50"><tr>
