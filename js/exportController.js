@@ -20,7 +20,7 @@ class ExportController {
             }
 
             const { jsPDF } = window.jspdf;
-            if (!jsPDF.autoTable) {
+            if (!jsPDF.API.autoTable) {
                 console.error("jsPDF-AutoTable is required. Please include it in your project.");
                 alert("PDF export functionality is not fully configured. Please contact support.");
                 return;
