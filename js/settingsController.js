@@ -156,7 +156,7 @@ class SettingsController {
             return;
         }
         
-        stateManager.addContractor({ name, licenses: [] });
+        stateManager.addContractor(name); // Pass just the name string
         nameInput.value = '';
         eventBus.emit('settingsUpdated');
     }

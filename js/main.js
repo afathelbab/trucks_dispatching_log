@@ -18,6 +18,7 @@ class App {
             uiController.setInitialDate();
             eventBus.emit('dataUpdated');
             eventBus.emit('logUpdated');
+            settingsController.switchTab('contractors'); // Ensure a tab is active on modal open
         });
     }
 }

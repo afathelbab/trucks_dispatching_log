@@ -63,21 +63,41 @@ class UIController {
         this.elements.filterDestinationSelect.addEventListener('change', () => this.applyFiltersAndRender());
         this.elements.filterStatusSelect.addEventListener('change', () => this.applyFiltersAndRender());
         
+        // Event delegation for log table actions (edit, delete, toggle status)
+        this.elements.logTableBody.addEventListener('click', (e) => {
+            const target = e.target;
+            const button = target.closest('button[data-action]'); // Find the closest button with data-action
+            
+            if (!button) {
+                // If the click wasn't on a button, check if it was on the status badge itself
+                const statusBadge = target.closest('.status-badge[data-log-id]');
+                if (statusBadge) {
+                    const logId = parseInt(statusBadge.dataset.logId);
+                    const currentStatus = statusBadge.dataset.status;
+                    const newStatus = currentStatus === 'completed' ? 'pending' : 'completed'; // Simple toggle
+                    stateManager.updateEntryStatus(logId, newStatus);
+                }
+                return;
+            }
+
+            const logId = parseInt(button.dataset.logId); // Ensure logId is a number
+            const action = button.dataset.action; // 'edit' or 'delete'
+
+            if (action === 'delete') {
+                if (confirm('Are you sure you want to delete this entry?')) {
+                    stateManager.deleteLogEntry(logId);
+                }
+            } else if (action === 'edit') {
+                // this.showEditModal(logId);
+                console.log(`Edit log ${logId}`); // Placeholder
+            }
+        });
     }
 
     setupEventBusListeners() {
-        eventBus.on('dataUpdated', () => {
-            this.populateAllDropdowns();
-            this.populateLogFilters();
-        });
-        
-        eventBus.on('logUpdated', () => {
-            this.applyFiltersAndRender();
-        });
-        
-        eventBus.on('filterUpdated', (filters) => {
-            this.renderFilteredLog(filters);
-        });
+        eventBus.on('dataUpdated', () => this.populateAllDropdowns());
+        eventBus.on('logUpdated', () => this.applyFiltersAndRender());
+        // Removed duplicate eventBus.on calls and filterUpdated as it's handled by applyFiltersAndRender
     }
     
     populateAllDropdowns() {
@@ -88,7 +108,7 @@ class UIController {
         this.populateSelect(this.elements.contractorSelect, contractors, 'Select Contractor');
         this.populateSelect(this.elements.sourceSelect, sources, 'Select Source');
         
-        // Populate filter dropdowns
+        // Populate filter dropdowns (also needs to be called on dataUpdated)
         this.populateSelect(this.elements.filterContractorSelect, contractors, 'All Contractors');
         this.populateSelect(this.elements.filterSourceSelect, sources, 'All Sources'); 
         const allDestinations = stateManager.getAllDestinations();
@@ -120,7 +140,7 @@ class UIController {
     }
     
     renderFilteredLog(filters) {
-        const logs = stateManager.getFilteredLogs(filters);
+        const logs = stateManager.getFilteredLogs(filters); // Use stateManager's method
         const tableBody = this.elements.logTableBody;
         const emptyMessage = this.elements.emptyLogMessage;
         
@@ -144,14 +164,14 @@ class UIController {
         row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
         
         const cells = [
-            { text: new Date(log.dispatchDate).toLocaleDateString(), classes: 'text-left' },
+            { text: new Date(log.dispatchDate).toLocaleDateString('en-GB'), classes: 'text-left' },
             { text: log.contractor, classes: 'text-left' },
             { text: log.license, classes: 'text-left' },
             { text: log.capacity, classes: 'text-center' },
             { text: log.source, classes: 'text-left' },
             { text: log.destination, classes: 'text-left' },
             { text: log.shift, classes: 'text-center' },
-            { text: this.getStatusBadge(log.status, log.id), classes: 'text-center', isHTML: true },
+            { text: this.getStatusBadge(log.status, log.id), classes: 'text-center', isHTML: true }, // Status is not in the log entry
             { text: this.getActionButtons(log.id), classes: 'text-right', isHTML: true }
         ];
         
@@ -171,29 +191,26 @@ class UIController {
     
     getStatusBadge(status, logId) {
         const statusClasses = {
-            pending: 'bg-yellow-100 text-yellow-800',
-            inProgress: 'bg-blue-100 text-blue-800',
-            completed: 'bg-green-100 text-green-800',
-            cancelled: 'bg-red-100 text-red-800'
+            pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200',
+            completed: 'bg-green-100 text-green-800 hover:bg-green-200',
+            // Add other statuses if needed
         };
 
         const statusText = {
             pending: 'Pending',
-            inProgress: 'In Progress',
             completed: 'Completed',
-            cancelled: 'Cancelled'
+            // Add other statuses if needed
         }
         
-        const button = document.createElement('button');
-        button.className = `px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClasses[status]}`;
-        button.textContent = statusText[status];
-        button.dataset.logId = logId;
-        button.dataset.action = 'toggle-status';
-        
-        // This is a simplified example. A real implementation would cycle through statuses.
-        button.addEventListener('click', () => stateManager.updateEntryStatus(logId, status === 'completed' ? 'pending' : 'completed'));
-
-        return button.outerHTML;
+        // Use a span with data attributes for event delegation
+        return `<span 
+                    class="status-badge px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer ${statusClasses[status]}" 
+                    data-log-id="${logId}" 
+                    data-status="${status}" 
+                    title="Click to toggle status"
+                >
+                    ${statusText[status]}
+                </span>`;
     }
     
     getActionButtons(logId) {
@@ -371,7 +388,7 @@ class UIController {
             dispatchDate: this.elements.dispatchDateInput.value
         };
         
-        stateManager.addDispatchEntry(formData);
+        stateManager.addDispatchEntry(formData); // Use stateManager to add entry
         this.resetForm();
     }
 
