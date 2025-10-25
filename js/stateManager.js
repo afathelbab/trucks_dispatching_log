@@ -73,6 +73,61 @@ class StateManager {
         eventBus.emit('logUpdated');
     }
 
+    generateTestData() {
+        if (!confirm("Are you sure you want to replace all existing data with test data? This cannot be undone.")) {
+            return;
+        }
+
+        const testLog = [];
+        const shifts = ["Day Shift", "Night Shift - Before Midnight", "Night Shift After Midnight"];
+        const statuses = ["Dispatched", "Verified"];
+        const contractorNames = this.getContractors();
+
+        if (contractorNames.length === 0) {
+            alert("No contractors found. Please add contractors before generating test data.");
+            return;
+        }
+
+        for (let i = 0; i < 75; i++) {
+            const randomContractorName = contractorNames[Math.floor(Math.random() * contractorNames.length)];
+            const contractorData = this.appData.contractors[randomContractorName];
+
+            if (!contractorData.trucks || contractorData.trucks.length === 0) continue;
+            if (!contractorData.destinations || contractorData.destinations.length === 0) continue;
+            if (!this.appData.sources || this.appData.sources.length === 0) continue;
+
+            const randomTruck = contractorData.trucks[Math.floor(Math.random() * contractorData.trucks.length)];
+            const randomDestination = contractorData.destinations[Math.floor(Math.random() * contractorData.destinations.length)];
+            const randomSource = this.appData.sources[Math.floor(Math.random() * this.appData.sources.length)];
+            const randomShift = shifts[Math.floor(Math.random() * shifts.length)];
+            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+
+            const date = new Date();
+            date.setDate(date.getDate() - Math.floor(Math.random() * 30));
+
+            let capacity = randomTruck.capacity;
+            if (randomContractorName.includes("Petrotreatment")) {
+                capacity = Math.floor(Math.random() * (60 - 40 + 1)) + 40;
+            }
+
+            testLog.push({
+                id: Date.now() + i,
+                date: date.toLocaleDateString('en-GB'),
+                contractor: randomContractorName,
+                license: randomTruck.license,
+                capacity: capacity,
+                source: randomSource,
+                destination: randomDestination,
+                shift: randomShift,
+                status: randomStatus
+            });
+        }
+
+        this.dispatchLog = testLog;
+        this.saveLog();
+        alert("Test data has been generated.");
+    }
+
     // --- Data Getters ---
     getFilteredLogs(filters) {
         // Ensure dispatchLog is initialized, otherwise return empty array

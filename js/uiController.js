@@ -1,3 +1,6 @@
+import stateManager from './stateManager.js';
+import eventBus from './eventBus.js';
+
 // UI Controller for managing DOM interactions
 class UIController {
     constructor() {
@@ -40,7 +43,11 @@ class UIController {
             settingsBtn: document.getElementById('settings-btn'),
             settingsModal: document.getElementById('settings-modal'),
             closeSettingsBtn: document.getElementById('close-settings-btn'),
-            settingsTabs: document.getElementById('settings-tabs')
+            settingsTabs: document.getElementById('settings-tabs'),
+
+            // Other buttons
+            generateDataBtn: document.getElementById('generate-data-btn'),
+            clearLogBtn: document.getElementById('clear-log-btn'),
         };
     }
 
@@ -63,6 +70,15 @@ class UIController {
         this.elements.filterDestinationSelect.addEventListener('change', () => this.applyFiltersAndRender());
         this.elements.filterStatusSelect.addEventListener('change', () => this.applyFiltersAndRender());
         
+        // Other buttons
+        this.elements.generateDataBtn.addEventListener('click', () => stateManager.generateTestData());
+        this.elements.clearLogBtn.addEventListener('click', () => {
+            if (confirm("Are you sure you want to permanently delete all log entries? This cannot be undone.")) {
+                stateManager.clearLog();
+                alert("The dispatch log has been cleared.");
+            }
+        });
+
         // Event delegation for log table actions (edit, delete, toggle status)
         this.elements.logTableBody.addEventListener('click', (e) => {
             const target = e.target;
