@@ -9,14 +9,19 @@ class StateManager {
 
     loadData() {
         const savedData = localStorage.getItem(config.localStorageKeys.appData);
-        this.appData = savedData ? JSON.parse(savedData) : JSON.parse(JSON.stringify(config.initialData));
+        let appData = savedData ? JSON.parse(savedData) : null;
+
+        if (!appData || !appData.contractors) {
+            appData = JSON.parse(JSON.stringify(config.initialData));
+        }
+        
+        this.appData = appData;
         
         const savedLog = localStorage.getItem(config.localStorageKeys.dispatchLog);
         if (savedLog) {
-            // Ensure IDs are numbers if they were saved as strings
             this.dispatchLog = JSON.parse(savedLog);
         } else {
-            this.dispatchLog = []; // Initialize to an empty array if no log is saved
+            this.dispatchLog = [];
         }
     }
 
