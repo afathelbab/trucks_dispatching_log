@@ -36,7 +36,7 @@ class StateManager {
         const newEntry = {
             ...entry,
             id: Date.now(), // Unique ID for the entry
-            status: 'pending' // Initial status
+            status: 'Dispatched' // Initial status
         };
         this.dispatchLog.unshift(newEntry);
         this.saveLog();
@@ -100,11 +100,14 @@ class StateManager {
         const allDestinations = new Set();
         if (this.appData.contractors) {
             Object.values(this.appData.contractors).forEach(c => {
-                c.destinations.forEach(d => allDestinations.add(d));
+                if (c.destinations) {
+                    c.destinations.forEach(d => allDestinations.add(d));
+                }
             });
         }
         return Array.from(allDestinations).sort();
     }
+    
     getDestinationsForContractor(contractorName) {
         if (this.appData.contractors && this.appData.contractors[contractorName] && this.appData.contractors[contractorName].destinations) {
             return [...this.appData.contractors[contractorName].destinations].sort();
@@ -140,20 +143,54 @@ class StateManager {
     updateContractor(oldName, newName) {
         if (oldName === newName) return;
         if (this.appData.contractors.hasOwnProperty(newName)) {
-            console.warn(`Contractor with name "${newName}" already exists.`);
+            console.warn(`Contractor with name '${newName}' already exists.`);
             return;
         }
         const data = this.appData.contractors[oldName];
         delete this.appData.contractors[oldName];
         this.appData.contractors[newName] = data;
-        // TODO: Update dispatchLog entries with the new contractor name
+        
+        this.dispatchLog.forEach(entry => {
+            if (entry.contractor === oldName) {
+                entry.contractor = newName;
+            }
+        });
+        this.saveLog();
+        
         this.saveData();
     }
 
     deleteContractor(name) {
         delete this.appData.contractors[name];
-        // TODO: Clean up dispatchLog entries associated with this contractor
+        
+        this.dispatchLog = this.dispatchLog.filter(entry => entry.contractor !== name);
+        this.saveLog();
+
         this.saveData();
+    }
+
+    addTruck(contractor, license, capacity) {
+        if (this.appData.contractors[contractor]) {
+            this.appData.contractors[contractor].trucks.push({ license, capacity });
+            this.saveData();
+        }
+    }
+
+    updateTruck(contractor, license, newCapacity) {
+        if (this.appData.contractors[contractor]) {
+            const truck = this.appData.contractors[contractor].trucks.find(t => t.license === license);
+            if (truck) {
+                truck.capacity = newCapacity;
+                this.saveData();
+            }
+        }
+    }
+
+    deleteTruck(contractor, license) {
+        if (this.appData.contractors[contractor]) {
+            this.appData.contractors[contractor].trucks = this.appData.contractors[contractor].trucks.filter(t => t.license !== license);
+            this.saveData();
+        }
     }
 }
 

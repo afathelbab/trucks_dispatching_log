@@ -51,10 +51,10 @@ class UIController {
         this.elements.submitBtn.addEventListener('click', () => this.handleSubmit());
 
         // Step navigation listeners
-        this.elements.nextStep1Btn.addEventListener('click', () => this.goToNextStep());
-        this.elements.prevStep2Btn.addEventListener('click', () => this.goToPreviousStep());
-        this.elements.nextStep2Btn.addEventListener('click', () => this.goToNextStep());
-        this.elements.prevStep3Btn.addEventListener('click', () => this.goToPreviousStep());
+        this.elements.nextStep1Btn.addEventListener('click', () => this.goToStep(2));
+        this.elements.prevStep2Btn.addEventListener('click', () => this.goToStep(1));
+        this.elements.nextStep2Btn.addEventListener('click', () => this.goToStep(3));
+        this.elements.prevStep3Btn.addEventListener('click', () => this.goToStep(2));
         
         // Filter listeners
         this.elements.searchLogInput.addEventListener('input', () => this.applyFiltersAndRender());
@@ -66,30 +66,28 @@ class UIController {
         // Event delegation for log table actions (edit, delete, toggle status)
         this.elements.logTableBody.addEventListener('click', (e) => {
             const target = e.target;
-            const button = target.closest('button[data-action]'); // Find the closest button with data-action
+            const button = target.closest('button[data-action]');
             
-            if (!button) {
-                // If the click wasn't on a button, check if it was on the status badge itself
-                const statusBadge = target.closest('.status-badge[data-log-id]');
-                if (statusBadge) {
-                    const logId = parseInt(statusBadge.dataset.logId);
-                    const currentStatus = statusBadge.dataset.status;
-                    const newStatus = currentStatus === 'completed' ? 'pending' : 'completed'; // Simple toggle
-                    stateManager.updateEntryStatus(logId, newStatus);
+            if (button) {
+                const logId = parseInt(button.dataset.logId);
+                const action = button.dataset.action;
+
+                if (action === 'delete') {
+                    if (confirm('Are you sure you want to delete this entry?')) {
+                        stateManager.deleteLogEntry(logId);
+                    }
+                } else if (action === 'edit') {
+                    console.log(`Edit log ${logId}`); // Placeholder
                 }
                 return;
             }
 
-            const logId = parseInt(button.dataset.logId); // Ensure logId is a number
-            const action = button.dataset.action; // 'edit' or 'delete'
-
-            if (action === 'delete') {
-                if (confirm('Are you sure you want to delete this entry?')) {
-                    stateManager.deleteLogEntry(logId);
-                }
-            } else if (action === 'edit') {
-                // this.showEditModal(logId);
-                console.log(`Edit log ${logId}`); // Placeholder
+            const statusBadge = target.closest('.status-badge[data-log-id]');
+            if (statusBadge) {
+                const logId = parseInt(statusBadge.dataset.logId);
+                const currentStatus = statusBadge.dataset.status;
+                const newStatus = currentStatus === 'Verified' ? 'Dispatched' : 'Verified';
+                stateManager.updateEntryStatus(logId, newStatus);
             }
         });
     }
@@ -97,27 +95,23 @@ class UIController {
     setupEventBusListeners() {
         eventBus.on('dataUpdated', () => this.populateAllDropdowns());
         eventBus.on('logUpdated', () => this.applyFiltersAndRender());
-        // Removed duplicate eventBus.on calls and filterUpdated as it's handled by applyFiltersAndRender
     }
     
     populateAllDropdowns() {
         const contractors = stateManager.getContractors();
         const sources = stateManager.getSources();
         
-        // Populate form dropdowns
         this.populateSelect(this.elements.contractorSelect, contractors, 'Select Contractor');
         this.populateSelect(this.elements.sourceSelect, sources, 'Select Source');
         
-        // Populate filter dropdowns (also needs to be called on dataUpdated)
         this.populateSelect(this.elements.filterContractorSelect, contractors, 'All Contractors');
         this.populateSelect(this.elements.filterSourceSelect, sources, 'All Sources'); 
         const allDestinations = stateManager.getAllDestinations();
         this.populateSelect(this.elements.filterDestinationSelect, allDestinations, 'All Destinations');
-
-        // Note: Destination filter might need to be populated dynamically based on all available destinations
     }
     
     populateSelect(selectElement, options, defaultText) {
+        const currentValue = selectElement.value;
         selectElement.innerHTML = `<option value="">${defaultText}</option>`;
         options.forEach(option => {
             const optionElement = document.createElement('option');
@@ -125,6 +119,7 @@ class UIController {
             optionElement.textContent = option;
             selectElement.appendChild(optionElement);
         });
+        selectElement.value = currentValue;
     }
     
     applyFiltersAndRender() {
@@ -140,11 +135,10 @@ class UIController {
     }
     
     renderFilteredLog(filters) {
-        const logs = stateManager.getFilteredLogs(filters); // Use stateManager's method
+        const logs = stateManager.getFilteredLogs(filters);
         const tableBody = this.elements.logTableBody;
         const emptyMessage = this.elements.emptyLogMessage;
         
-        // Clear existing rows
         tableBody.innerHTML = '';
         
         if (logs.length === 0) {
@@ -161,17 +155,17 @@ class UIController {
     
     createLogRow(log, index) {
         const row = document.createElement('tr');
-        row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+        row.className = `border-b hover:bg-gray-50 ${log.status === 'Verified' ? 'bg-green-50' : ''}`;
         
         const cells = [
-            { text: new Date(log.dispatchDate).toLocaleDateString('en-GB'), classes: 'text-left' },
+            { text: log.date, classes: 'text-left' },
             { text: log.contractor, classes: 'text-left' },
             { text: log.license, classes: 'text-left' },
             { text: log.capacity, classes: 'text-center' },
             { text: log.source, classes: 'text-left' },
             { text: log.destination, classes: 'text-left' },
             { text: log.shift, classes: 'text-center' },
-            { text: this.getStatusBadge(log.status, log.id), classes: 'text-center', isHTML: true }, // Status is not in the log entry
+            { text: this.getStatusBadge(log.status, log.id), classes: 'text-center', isHTML: true },
             { text: this.getActionButtons(log.id), classes: 'text-right', isHTML: true }
         ];
         
@@ -191,18 +185,15 @@ class UIController {
     
     getStatusBadge(status, logId) {
         const statusClasses = {
-            pending: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200',
-            completed: 'bg-green-100 text-green-800 hover:bg-green-200',
-            // Add other statuses if needed
+            Dispatched: 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200',
+            Verified: 'bg-green-100 text-green-800 hover:bg-green-200',
         };
 
         const statusText = {
-            pending: 'Pending',
-            completed: 'Completed',
-            // Add other statuses if needed
+            Dispatched: 'Dispatched',
+            Verified: 'Verified',
         }
         
-        // Use a span with data attributes for event delegation
         return `<span 
                     class="status-badge px-2 inline-flex text-xs leading-5 font-semibold rounded-full cursor-pointer ${statusClasses[status]}" 
                     data-log-id="${logId}" 
@@ -230,7 +221,6 @@ class UIController {
         `;
     }
 
-    // UI update methods
     updateStepIndicator(step) {
         for (let i = 1; i <= 3; i++) {
             const indicator = document.getElementById(`step-${i}-indicator`);
@@ -268,28 +258,13 @@ class UIController {
         p.classList.add('text-gray-400');
     }
 
-        handleContractorChange() {
+    handleContractorChange() {
         const selectedContractor = this.elements.contractorSelect.value;
         const trucks = stateManager.getTrucksForContractor(selectedContractor);
         const destinations = stateManager.getDestinationsForContractor(selectedContractor);
         
-        // Clear and populate license dropdown
-        this.elements.licenseSelect.innerHTML = '<option value="">Select License</option>';
-        trucks.forEach(truck => {
-            const option = document.createElement('option');
-            option.value = truck.license;
-            option.textContent = truck.license;
-            this.elements.licenseSelect.appendChild(option);
-        });
-        
-        // Clear and populate destination dropdown
-        this.elements.destinationSelect.innerHTML = '<option value="">Select Destination</option>';
-        destinations.forEach(dest => {
-            const option = document.createElement('option');
-            option.value = dest;
-            option.textContent = dest;
-            this.elements.destinationSelect.appendChild(option);
-        });
+        this.populateSelect(this.elements.licenseSelect, trucks.map(t => t.license), 'Select License');
+        this.populateSelect(this.elements.destinationSelect, destinations, 'Select Destination');
 
         this.elements.capacityInput.value = '';
         this.elements.licenseSelect.disabled = !selectedContractor;
@@ -343,75 +318,49 @@ class UIController {
         return true;
     }
 
-    goToNextStep() {
-        // Validate current step
-        let isValid = false;
-        switch (this.currentStep) {
-            case 1:
-                isValid = this.validateStep1();
-                break;
-            case 2:
-                isValid = this.validateStep2();
-                break;
-        }
-        
-        if (!isValid) return;
-        
-        // Hide current step and show next step
-        if (this.currentStep < 3) {
-            document.getElementById(`step-${this.currentStep}`).classList.replace('visible-section', 'hidden-section');
-            this.currentStep++;
-            document.getElementById(`step-${this.currentStep}`).classList.replace('hidden-section', 'visible-section');
-            this.updateStepIndicator(this.currentStep);
-        }
-    }
-
-    goToPreviousStep() {
-        if (this.currentStep > 1) {
-            document.getElementById(`step-${this.currentStep}`).classList.replace('visible-section', 'hidden-section');
-            this.currentStep--;
-            document.getElementById(`step-${this.currentStep}`).classList.replace('hidden-section', 'visible-section');
-            this.updateStepIndicator(this.currentStep);
-        }
+    goToStep(step) {
+        document.getElementById(`step-${this.currentStep}`).classList.replace('visible-section', 'hidden-section');
+        this.currentStep = step;
+        document.getElementById(`step-${this.currentStep}`).classList.replace('hidden-section', 'visible-section');
+        this.updateStepIndicator(this.currentStep);
     }
 
     handleSubmit() {
-        if (!this.validateStep3()) return;
+        if (!this.validateStep1() || !this.validateStep2() || !this.validateStep3()) return;
         
+        const dateString = this.elements.dispatchDateInput.value;
+        const parts = dateString.split('-');
+        let dispatchDate = new Date(parts[0], parts[1] - 1, parts[2]);
+
+        if (this.elements.shiftSelect.value === "Night Shift After Midnight") {
+            dispatchDate.setDate(dispatchDate.getDate() + 1);
+        }
+
         const formData = {
+            date: dispatchDate.toLocaleDateString('en-GB'),
             contractor: this.elements.contractorSelect.value,
             license: this.elements.licenseSelect.value,
             capacity: this.elements.capacityInput.value,
             source: this.elements.sourceSelect.value,
             destination: this.elements.destinationSelect.value,
             shift: this.elements.shiftSelect.value,
-            dispatchDate: this.elements.dispatchDateInput.value
         };
         
-        stateManager.addDispatchEntry(formData); // Use stateManager to add entry
+        stateManager.addDispatchEntry(formData);
         this.resetForm();
     }
 
     resetForm() {
-        // Reset form fields
         this.elements.contractorSelect.value = '';
-        this.elements.licenseSelect.value = '';
+        this.elements.licenseSelect.innerHTML = '<option value="">-- Select License Number --</option>';
+        this.elements.licenseSelect.disabled = true;
         this.elements.capacityInput.value = '';
         this.elements.sourceSelect.value = '';
-        this.elements.destinationSelect.value = '';
+        this.elements.destinationSelect.innerHTML = '<option value="">-- Select a Destination --</option>';
+        this.elements.destinationSelect.disabled = true;
         this.elements.shiftSelect.value = '';
         this.setInitialDate();
-        
-        // Reset step display
-        this.goToPreviousStep(); // Go to step 2
-        this.goToPreviousStep(); // Go to step 1
-        
-        // Reset step indicators
-        this.updateStepIndicator(1);
-        
-        // Disable dependent fields
-        this.elements.licenseSelect.disabled = true;
-        this.elements.destinationSelect.disabled = true;
+        this.goToStep(1);
     }
 
     setInitialDate() {
