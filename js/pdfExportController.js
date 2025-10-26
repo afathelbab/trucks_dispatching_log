@@ -205,7 +205,7 @@ class ExportController {
         const color = d3.scaleSequential(d3.interpolateBlues).domain([0, d3.max(links, d => d.value)]);
 
         svg.append("g")
-            .selectAll()
+            .selectAll("rect")
             .data(links)
             .join("rect")
             .attr("x", d => x(d.target))
@@ -215,7 +215,7 @@ class ExportController {
             .attr("fill", d => color(d.value));
 
         svg.append("g")
-            .selectAll()
+            .selectAll("text")
             .data(links)
             .join("text")
             .attr("x", d => x(d.target) + x.bandwidth() / 2)
