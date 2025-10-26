@@ -1,3 +1,7 @@
+window.addEventListener('error', function(event) {
+    console.error('Global error handler caught:', event.error);
+});
+
 import eventBus from './eventBus.js';
 import stateManager from './stateManager.js';
 import uiController from './uiController.js';

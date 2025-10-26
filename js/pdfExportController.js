@@ -179,74 +179,98 @@ class ExportController {
     }
 
     async createMatrixChart(data) {
-        if (!data || !data.nodes || !data.links) return null;
-
-        const { nodes, links } = data;
-        const nodeNames = nodes.map(n => n.name);
-
-        const width = 800;
-        const height = 800;
-        const outerRadius = Math.min(width, height) * 0.5 - 100;
-        const innerRadius = outerRadius - 20;
-
-        const svg = d3.create("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .attr("viewBox", [-width / 2, -height / 2, width, height])
-            .style("background", "white");
-
-        const matrix = (() => {
-            const index = new Map(nodeNames.map((name, i) => [name, i]));
-            const matrix = Array.from(index, () => new Array(index.size).fill(0));
-            for (const { source, target, value } of links) {
-                matrix[source][target] += value;
-            }
-            return matrix;
-        })();
-
-        const chord = d3.chord()
-            .padAngle(0.05)
-            .sortSubgroups(d3.descending);
-
-        const arc = d3.arc()
-            .innerRadius(innerRadius)
-            .outerRadius(outerRadius);
-
-        const ribbon = d3.ribbon()
-            .radius(innerRadius);
-
-        const color = d3.scaleOrdinal(d3.schemeCategory10);
-
-        const chords = chord(matrix);
-
-        const group = svg.append("g")
-            .selectAll("g")
-            .data(chords.groups)
-            .join("g");
-
-        group.append("path")
-            .attr("fill", d => color(d.index))
-            .attr("stroke", d => d3.rgb(color(d.index)).darker())
-            .attr("d", arc);
-
-        const svgNode = svg.node();
-        
-        // Temporarily append to the body to ensure styles are applied
-        svgNode.style.position = 'absolute';
-        svgNode.style.left = '-9999px';
-        document.body.appendChild(svgNode);
-
         try {
-            console.log("Attempting to capture chord chart...");
-            const canvas = await html2canvas(svgNode, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: true });
-            console.log("Chord chart captured successfully.");
-            return canvas;
+            console.log("Creating matrix chart with data:", data);
+            console.log("D3 object:", d3);
+
+            if (!data || !data.nodes || !data.links) {
+                console.log("No data for matrix chart");
+                return null;
+            }
+
+            const { nodes, links } = data;
+            const nodeNames = nodes.map(n => n.name);
+            console.log("Node names:", nodeNames);
+
+            const width = 800;
+            const height = 800;
+            const outerRadius = Math.min(width, height) * 0.5 - 100;
+            const innerRadius = outerRadius - 20;
+
+            const svg = d3.create("svg")
+                .attr("width", width)
+                .attr("height", height)
+                .attr("viewBox", [-width / 2, -height / 2, width, height])
+                .style("background", "white");
+            console.log("SVG created");
+
+            const matrix = (() => {
+                const index = new Map(nodeNames.map((name, i) => [name, i]));
+                const matrix = Array.from(index, () => new Array(index.size).fill(0));
+                for (const { source, target, value } of links) {
+                    matrix[source][target] += value;
+                }
+                console.log("Matrix:", matrix);
+                return matrix;
+            })();
+
+            const chord = d3.chord()
+                .padAngle(0.05)
+                .sortSubgroups(d3.descending);
+            console.log("Chord generator created");
+
+            const arc = d3.arc()
+                .innerRadius(innerRadius)
+                .outerRadius(outerRadius);
+            console.log("Arc generator created");
+
+            const ribbon = d3.ribbon()
+                .radius(innerRadius);
+            console.log("Ribbon generator created");
+
+            const color = d3.scaleOrdinal(d3.schemeCategory10);
+            console.log("Color scale created");
+
+            const chords = chord(matrix);
+            console.log("Chords created:", chords);
+
+            const group = svg.append("g")
+                .selectAll("g")
+                .data(chords.groups)
+                .join("g");
+            console.log("Group created");
+
+            group.append("path")
+                .attr("fill", d => color(d.index))
+                .attr("stroke", d => d3.rgb(color(d.index)).darker())
+                .attr("d", arc);
+            console.log("Arcs appended");
+
+            const svgNode = svg.node();
+            console.log("SVG node created");
+            
+            // Temporarily append to the body to ensure styles are applied
+            svgNode.style.position = 'absolute';
+            svgNode.style.left = '-9999px';
+            document.body.appendChild(svgNode);
+            console.log("SVG node appended to body");
+
+            try {
+                console.log("Attempting to capture chord chart...");
+                const canvas = await html2canvas(svgNode, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: true });
+                console.log("Chord chart captured successfully.");
+                return canvas;
+            } catch (error) {
+                console.error("Error capturing chord chart:", error);
+                throw new Error("Failed to capture chord chart");
+            } finally {
+                // Clean up
+                document.body.removeChild(svgNode);
+                console.log("SVG node removed from body");
+            }
         } catch (error) {
-            console.error("Error capturing chord chart:", error);
-            throw new Error("Failed to capture chord chart");
-        } finally {
-            // Clean up
-            document.body.removeChild(svgNode);
+            console.error("Error in createMatrixChart:", error);
+            throw error;
         }
     }
 
