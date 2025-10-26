@@ -11,7 +11,7 @@ class ReportController {
 
     initializeElements() {
         this.elements = {
-            generateReportBtn: document.getElementById('generate-report'),
+            generateReportBtn: document.getElementById('generate-report-btn'),
             generateTruckReportBtn: document.getElementById('generate-truck-report'),
             reportContainer: document.getElementById('report-container'),
             truckReportContainer: document.getElementById('truck-report-container')

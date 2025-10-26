@@ -1,10 +1,12 @@
 import stateManager from './stateManager.js';
 import eventBus from './eventBus.js';
+import settingsController from './settingsController.js';
 
 class UIController {
-    constructor() {
+    constructor(settingsController) {
         this.elements = {};
         this.isDarkMode = false;
+        this.settingsController = settingsController;
         this.initializeElements();
         this.attachEventListeners();
         this.setupEventBusListeners();
@@ -43,6 +45,10 @@ class UIController {
         if (this.elements.contractorSelect) {
             this.elements.contractorSelect.addEventListener('change', () => this.onContractorChange());
         }
+
+        if (this.elements.licenseSelect) {
+            this.elements.licenseSelect.addEventListener('change', () => this.onLicenseChange());
+        }
         
         if (this.elements.submitBtn) {
             this.elements.submitBtn.addEventListener('click', () => this.handleSubmit());
@@ -68,6 +74,7 @@ class UIController {
     openSettingsModal() {
         if (this.elements.settingsModal) {
             this.elements.settingsModal.classList.remove('hidden');
+            this.settingsController.refreshSettings();
         }
     }
 
@@ -136,20 +143,12 @@ class UIController {
         this.elements.destinationSelect.disabled = false;
         this.populateLicenses(contractor);
         this.populateDestinations(contractor);
-    }
 
-    populateLicenses(contractor) {
-        if (!this.elements.licenseSelect) return;
-        
-        const trucks = stateManager.getTrucksForContractor(contractor);
-        this.populateSelect(this.elements.licenseSelect, trucks.map(t => t.license), 'Select License');
-    }
-
-    populateDestinations(contractor) {
-        if (!this.elements.destinationSelect) return;
-        
-        const destinations = stateManager.getDestinationsForContractor(contractor);
-        this.populateSelect(this.elements.destinationSelect, destinations, 'Select Destination');
+        if (contractor === 'Petrotreatment') {
+            this.elements.capacityInput.readOnly = false;
+        } else {
+            this.elements.capacityInput.readOnly = true;
+        }
     }
 
     onLicenseChange() {

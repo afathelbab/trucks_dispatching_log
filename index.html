@@ -261,7 +261,6 @@
                             </div>
                         </div>
                          <div class="mt-8 text-right">
-                            <button id="next-step-1" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition">Next &rarr;</button>
                         </div>
                     </div>
 
@@ -289,8 +288,6 @@
                             </div>
                         </div>
                         <div class="mt-8 flex justify-between">
-                            <button id="prev-step-2" class="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition">&larr; Back</button>
-                            <button id="next-step-2" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition">Next &rarr;</button>
                         </div>
                     </div>
                     
@@ -319,7 +316,6 @@
                             </div>
                         </div>
                          <div class="mt-8 flex justify-between">
-                            <button id="prev-step-3" class="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition">&larr; Back</button>
                             <button id="submit-btn" class="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition flex items-center">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                 Submit Entry
@@ -403,14 +399,25 @@
                             </svg>
                             Dispatch Log
                         </h2>
+                    <div id="destinations-panel" class="settings-panel hidden"></div>
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Data Management</h3>
                         <div class="flex gap-2">
-                            <button id="generate-data-btn" class="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition">
+                            <button id="generate-test-data" class="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition">
                                 Generate Test Data
                             </button>
-                            <button id="clear-log-btn" class="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-red-700 transition">
+                            <button id="clear-data" class="px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-red-700 transition">
                                 Clear Log
                             </button>
+                            <button id="export-data" class="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-green-700 transition">
+                                Export Data
+                            </button>
+                            <input type="file" id="import-file" class="hidden" accept=".json">
+                            <button id="import-data" class="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-blue-700 transition">
+                                Import Data
+                            </button>
                         </div>
+                    </div>
                     </div>
                     
                     <!-- Search and Filter Section -->

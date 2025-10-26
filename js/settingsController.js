@@ -92,13 +92,15 @@ class SettingsController {
         this.elements.settingsTabs.forEach(tab => {
             const isActive = tab.dataset.tab === tabId;
             tab.classList.toggle('active', isActive);
-            tab.classList.toggle('bg-blue-100', isActive);
-            tab.classList.toggle('text-blue-700', isActive);
+            tab.classList.toggle('border-indigo-500', isActive);
+            tab.classList.toggle('text-indigo-600', isActive);
+            tab.classList.toggle('border-transparent', !isActive);
+            tab.classList.toggle('text-gray-500', !isActive);
         });
 
         // Update tab content
         this.elements.settingsContents.forEach(content => {
-            const isTargetTab = content.id === `${tabId}-settings`;
+            const isTargetTab = content.id === `${tabId}-panel`;
             content.classList.toggle('hidden', !isTargetTab);
         });
     }
