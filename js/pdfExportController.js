@@ -92,6 +92,8 @@ class ExportController {
                 const imgHeight = (matrixChart.height * imgWidth) / matrixChart.width;
                 pdf.addImage(matrixChart.toDataURL('image/png'), 'PNG', margin, y, imgWidth, imgHeight);
                 y += imgHeight + 10;
+            } else {
+                console.log("Matrix chart creation failed, continuing without it");
             }
 
             // --- Trend Chart ---
@@ -193,6 +195,12 @@ class ExportController {
                 return null;
             }
 
+            // Check D3 version compatibility
+            if (typeof d3.create === 'undefined') {
+                console.error('D3.js version is too old. Please use D3 v5 or later.');
+                return null;
+            }
+
             console.log("Creating matrix chart with data:", data);
             console.log("D3 object:", d3);
 
@@ -249,11 +257,18 @@ class ExportController {
 
             const group = svg.append("g")
                 .selectAll("g")
-                .data(chords.groups)
-                .join("g");
+                .data(chords.groups);
+
+            // Use join if available (D3 v5+), otherwise use enter/append (D3 v4)
+            let groupSelection;
+            if (typeof group.join === 'function') {
+                groupSelection = group.join("g");
+            } else {
+                groupSelection = group.enter().append("g");
+            }
             console.log("Group created");
 
-            group.append("path")
+            groupSelection.append("path")
                 .attr("fill", d => color(d.index))
                 .attr("stroke", d => d3.rgb(color(d.index)).darker())
                 .attr("d", arc);
@@ -275,7 +290,9 @@ class ExportController {
                 return canvas;
             } catch (error) {
                 console.error("Error capturing chord chart:", error);
-                throw new Error("Failed to capture chord chart");
+                // Try a simpler approach - create a basic text-based representation
+                console.log("Falling back to text-based matrix representation");
+                return this.createSimpleMatrixChart(data);
             } finally {
                 // Clean up
                 document.body.removeChild(svgNode);
@@ -283,7 +300,52 @@ class ExportController {
             }
         } catch (error) {
             console.error("Error in createMatrixChart:", error);
-            throw error;
+            return null; // Return null instead of throwing to allow PDF export to continue
+        }
+    }
+
+    createSimpleMatrixChart(data) {
+        // Create a simple text-based matrix representation as fallback
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 800;
+            canvas.height = 600;
+            
+            // Set background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw title
+            ctx.fillStyle = '#000000';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Dispatch Flow Matrix', canvas.width / 2, 40);
+            
+            // Draw subtitle
+            ctx.font = '16px Arial';
+            ctx.fillText('(Simplified Text Representation)', canvas.width / 2, 70);
+            
+            // Draw matrix data as text
+            ctx.font = '14px Arial';
+            ctx.textAlign = 'left';
+            let y = 120;
+            
+            ctx.fillText('Flow Summary:', 50, y);
+            y += 30;
+            
+            data.links.forEach((link, index) => {
+                if (y > canvas.height - 50) return; // Prevent overflow
+                const sourceName = data.nodes[link.source].name;
+                const targetName = data.nodes[link.target].name;
+                ctx.fillText(`${sourceName} → ${targetName}: ${link.value} trips`, 70, y);
+                y += 20;
+            });
+            
+            return canvas;
+        } catch (error) {
+            console.error("Error creating simple matrix chart:", error);
+            return null;
         }
     }
 
