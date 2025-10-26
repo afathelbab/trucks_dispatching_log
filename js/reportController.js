@@ -292,4 +292,4 @@ class ReportController {
     }
 }
 
-export default new ReportController();
+export default ReportController;

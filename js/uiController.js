@@ -224,4 +224,4 @@ class UIController {
     }
 }
 
-export default new UIController();
+export default UIController;

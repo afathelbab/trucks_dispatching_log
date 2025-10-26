@@ -445,4 +445,4 @@ class DashboardController {
     }
 }
 
-export default new DashboardController();
+export default DashboardController;

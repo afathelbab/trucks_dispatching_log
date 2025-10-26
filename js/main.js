@@ -10,10 +10,10 @@ window.addEventListener('error', function(event) {
 
 import eventBus from './eventBus.js';
 import stateManager from './stateManager.js';
-import uiController from './uiController.js';
-import settingsController from './settingsController.js';
-import reportController from './reportController.js';
-import dashboardController from './dashboardController.js';
+import UIController from './uiController.js';
+import SettingsController from './settingsController.js';
+import ReportController from './reportController.js';
+import DashboardController from './dashboardController.js';
 import TabController from './tabController.js';
 
 class App {
@@ -44,18 +44,22 @@ class App {
         
         // Initialize controllers
         this.tabController = new TabController();
+        this.dashboardController = new DashboardController();
+        this.reportController = new ReportController();
+        this.settingsController = new SettingsController();
+        this.uiController = new UIController();
         
         // Initialize state and UI
         stateManager.loadData();
-        uiController.setInitialDate();
-        uiController.populateFormOptions();
+        this.uiController.setInitialDate();
+        this.uiController.populateFormOptions();
         
         // Initialize dashboard
-        dashboardController.updateDateTime();
-        setInterval(() => dashboardController.updateDateTime(), 1000);
+        this.dashboardController.updateDateTime();
+        setInterval(() => this.dashboardController.updateDateTime(), 1000);
         
         // Initialize settings
-        settingsController.switchTab('contractors');
+        this.settingsController.switchTab('contractors');
         
         // Emit initial events
         eventBus.emit('dataUpdated');
@@ -63,7 +67,7 @@ class App {
         
         // Initialize dashboard with default data
         setTimeout(() => {
-            dashboardController.refreshDashboard();
+            this.dashboardController.refreshDashboard();
         }, 100);
         
         console.log('App initialized successfully');
