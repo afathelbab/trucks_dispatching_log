@@ -32,22 +32,11 @@ class ChartController {
 
     drawSankeyChart(dataArray) {
         const data = google.visualization.arrayToDataTable(dataArray);
-        const contractorNames = Object.keys(stateManager.appData.contractors);
-        const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
-        const contractorColors = {};
-        
-        contractorNames.forEach((name, i) => {
-            contractorColors[name] = colors[i % colors.length];
-        });
-        
-        const uniqueNodes = Array.from(new Set(dataArray.slice(1).flatMap(row => [row[0], row[1]])));
-        const nodeColors = uniqueNodes.map(node => contractorColors[node] || '#6B7280');
 
         const options = {
             height: 450,
             sankey: {
                 node: {
-                    colors: nodeColors,
                     label: { fontName: 'Inter', fontSize: 13, color: '#000', bold: true },
                     nodePadding: 20
                 },

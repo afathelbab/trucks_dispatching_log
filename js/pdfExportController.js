@@ -31,6 +31,8 @@ class ExportController {
             const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
             // --- Cover Page ---
+            pdf.setFontSize(18);
+            pdf.text("Belayiem Petroleum Company - PETROBEL", pdf.internal.pageSize.getWidth() / 2, 80, { align: 'center' });
             pdf.setFontSize(22);
             pdf.text("Truck Dispatch Report", pdf.internal.pageSize.getWidth() / 2, 100, { align: 'center' });
             pdf.setFontSize(16);
@@ -141,6 +143,15 @@ class ExportController {
                 pdf.text("Detailed Summary Table", margin, y);
                 y += 5;
                 pdf.autoTable({ html: summaryTable, startY: y, theme: 'grid' });
+            }
+
+            // --- Footer ---
+            const pageCount = pdf.internal.getNumberOfPages();
+            for(let i = 1; i <= pageCount; i++) {
+                pdf.setPage(i);
+                pdf.setFontSize(10);
+                pdf.text(`Page ${i} of ${pageCount}`, pdf.internal.pageSize.getWidth() / 2, 287, { align: 'center' });
+                pdf.text('Developed by Ahmed Fathelbab - fath@petrobel.org', pdf.internal.pageSize.getWidth() / 2, 292, { align: 'center' });
             }
 
             pdf.save(`${reportTitle.replace(/ /g, '_')}.pdf`);
