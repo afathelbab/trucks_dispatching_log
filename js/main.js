@@ -22,50 +22,48 @@ class App {
     }
 
     initialize() {
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('App initializing...');
+        console.log('App initializing...');
+        
+        // Check critical dependencies
+        const dependencies = {
+            'Google Charts': typeof google !== 'undefined',
+            'Chart.js': typeof Chart !== 'undefined',
+            'D3.js': typeof d3 !== 'undefined',
+            'html2canvas': typeof html2canvas !== 'undefined',
+            'jsPDF': typeof window.jspdf !== 'undefined',
+            'XLSX': typeof XLSX !== 'undefined'
+        };
+        
+        const missingDeps = Object.entries(dependencies)
+            .filter(([name, loaded]) => !loaded)
+            .map(([name]) => name);
             
-            // Check critical dependencies
-            const dependencies = {
-                'Google Charts': typeof google !== 'undefined',
-                'Chart.js': typeof Chart !== 'undefined',
-                'D3.js': typeof d3 !== 'undefined',
-                'html2canvas': typeof html2canvas !== 'undefined',
-                'jsPDF': typeof window.jspdf !== 'undefined',
-                'XLSX': typeof XLSX !== 'undefined'
-            };
-            
-            const missingDeps = Object.entries(dependencies)
-                .filter(([name, loaded]) => !loaded)
-                .map(([name]) => name);
-                
-            if (missingDeps.length > 0) {
-                console.warn('Missing dependencies:', missingDeps);
-            }
-            
-            // Initialize state and UI
-            stateManager.loadData();
-            uiController.setInitialDate();
-            uiController.populateFormOptions();
-            
-            // Initialize dashboard
-            dashboardController.updateDateTime();
-            setInterval(() => dashboardController.updateDateTime(), 1000);
-            
-            // Initialize settings
-            settingsController.switchTab('contractors');
-            
-            // Emit initial events
-            eventBus.emit('dataUpdated');
-            eventBus.emit('logUpdated');
-            
-            // Initialize dashboard with default data
-            setTimeout(() => {
-                dashboardController.refreshDashboard();
-            }, 100);
-            
-            console.log('App initialized successfully');
-        });
+        if (missingDeps.length > 0) {
+            console.warn('Missing dependencies:', missingDeps);
+        }
+        
+        // Initialize state and UI
+        stateManager.loadData();
+        uiController.setInitialDate();
+        uiController.populateFormOptions();
+        
+        // Initialize dashboard
+        dashboardController.updateDateTime();
+        setInterval(() => dashboardController.updateDateTime(), 1000);
+        
+        // Initialize settings
+        settingsController.switchTab('contractors');
+        
+        // Emit initial events
+        eventBus.emit('dataUpdated');
+        eventBus.emit('logUpdated');
+        
+        // Initialize dashboard with default data
+        setTimeout(() => {
+            dashboardController.refreshDashboard();
+        }, 100);
+        
+        console.log('App initialized successfully');
     }
 }
 
