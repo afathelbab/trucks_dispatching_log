@@ -212,7 +212,17 @@ class ExportController {
                 .text(link.value);
         });
 
-        const canvas = await html2canvas(svg.node(), { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+        // Temporarily append to the body to ensure styles are applied
+        const svgNode = svg.node();
+        svgNode.style.position = 'absolute';
+        svgNode.style.left = '-9999px';
+        document.body.appendChild(svgNode);
+
+        const canvas = await html2canvas(svgNode, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+
+        // Clean up
+        document.body.removeChild(svgNode);
+
         return canvas;
     }
 
