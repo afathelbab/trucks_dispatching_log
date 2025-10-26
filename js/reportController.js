@@ -99,7 +99,7 @@ class ReportController {
         this.generateAndDisplayTruckReport(filteredLog, license, startDate, endDate);
     }
 
-    generateAndDisplayReport(reportData, startDate, endDate) {
+    async generateAndDisplayReport(reportData, startDate, endDate) {
         chartController.destroyCharts();
         this.elements.reportOutput.innerHTML = '';
         this.elements.reportOutput.classList.remove('hidden');
@@ -208,12 +208,15 @@ class ReportController {
 
         this.elements.reportOutput.innerHTML = reportHTML;
 
-        chartController.createSankeyChart(sankeyData);
-        chartController.createTrendChart(lineChartLabels, truckCountData, capacityData);
+        const chartPromises = [
+            chartController.createSankeyChart(sankeyData),
+            chartController.createTrendChart(lineChartLabels, truckCountData, capacityData),
+            chartController.createDoughnutChart('sourceChart', 'By Source', bySource),
+            chartController.createDoughnutChart('destinationChart', 'By Destination', byDestination),
+            chartController.createDoughnutChart('contractorChart', 'By Contractor', byContractor)
+        ];
 
-        chartController.createDoughnutChart('sourceChart', 'By Source', bySource);
-        chartController.createDoughnutChart('destinationChart', 'By Destination', byDestination);
-        chartController.createDoughnutChart('contractorChart', 'By Contractor', byContractor);
+        await Promise.all(chartPromises);
     }
 
     generateSankeyData(reportData) {

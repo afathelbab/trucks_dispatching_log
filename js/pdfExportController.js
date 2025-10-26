@@ -19,6 +19,9 @@ class ExportController {
                 return;
             }
 
+            // Add a small delay to ensure all elements are rendered
+            await new Promise(resolve => setTimeout(resolve, 500));
+
             const { jsPDF } = window.jspdf;
             if (!jsPDF.API.autoTable) {
                 console.error("jsPDF-AutoTable is required. Please include it in your project.");

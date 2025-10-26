@@ -26,10 +26,15 @@ class ChartController {
 
     createSankeyChart(data) {
         this.sankeyData = data;
-        if (data.nodes.length <= 1) return;
+        if (data.nodes.length <= 1) return Promise.resolve();
 
-        google.charts.load('current', {'packages':['sankey']});
-        google.charts.setOnLoadCallback(this.drawSankeyChart.bind(this, data));
+        return new Promise((resolve) => {
+            google.charts.load('current', {'packages':['sankey']});
+            google.charts.setOnLoadCallback(() => {
+                this.drawSankeyChart(data);
+                resolve();
+            });
+        });
     }
 
     drawSankeyChart(data) {
@@ -59,33 +64,42 @@ class ChartController {
     }
 
     createTrendChart(labels, truckData, capacityData) {
-        const ctx = document.getElementById('trendChart').getContext('2d');
-        this.reportCharts['trendChart'] = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Number of Trucks',
-                        data: truckData,
-                        borderColor: '#3B82F6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        yAxisID: 'yTrucks',
-                        fill: true,
-                        tension: 0.3
-                    },
-                    {
-                        label: 'Total Capacity (m³)',
-                        data: capacityData,
-                        borderColor: '#10B981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        yAxisID: 'yCapacity',
-                        fill: true,
-                        tension: 0.3
+        return new Promise((resolve) => {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            this.reportCharts['trendChart'] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Number of Trucks',
+                            data: truckData,
+                            borderColor: '#3B82F6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            yAxisID: 'yTrucks',
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Total Capacity (m³)',
+                            data: capacityData,
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            yAxisID: 'yCapacity',
+                            fill: true,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    ...this.getTrendChartOptions(),
+                    animation: {
+                        onComplete: () => {
+                            resolve();
+                        }
                     }
-                ]
-            },
-            options: this.getTrendChartOptions()
+                }
+            });
         });
     }
 
@@ -135,33 +149,40 @@ class ChartController {
     }
 
     createDoughnutChart(chartId, label, dataObject) {
-        const ctx = document.getElementById(chartId).getContext('2d');
-        const chartColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
-        
-        this.reportCharts[chartId] = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(dataObject),
-                datasets: [{
-                    label: `Number of Trucks`,
-                    data: Object.values(dataObject).map(d => d.count),
-                    backgroundColor: chartColors,
-                    borderColor: '#fff',
-                    borderWidth: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
+        return new Promise((resolve) => {
+            const ctx = document.getElementById(chartId).getContext('2d');
+            const chartColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
+            
+            this.reportCharts[chartId] = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(dataObject),
+                    datasets: [{
+                        label: `Number of Trucks`,
+                        data: Object.values(dataObject).map(d => d.count),
+                        backgroundColor: chartColors,
+                        borderColor: '#fff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        title: {
+                            display: true,
+                            text: `${label}: Truck Count Distribution`
+                        }
                     },
-                    title: {
-                        display: true,
-                        text: `${label}: Truck Count Distribution`
+                    animation: {
+                        onComplete: () => {
+                            resolve();
+                        }
                     }
                 }
-            }
+            });
         });
     }
 }
