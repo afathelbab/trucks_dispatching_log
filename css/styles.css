@@ -2,6 +2,31 @@ body {
     font-family: 'Inter', sans-serif;
 }
 
+/* Tab Navigation Styles */
+.tab-nav {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.tab-nav.active {
+    border-bottom-color: #3B82F6 !important;
+    color: #3B82F6 !important;
+}
+
+.tab-nav:hover {
+    color: #374151;
+}
+
+/* Tab Content */
+.tab-content {
+    display: block;
+}
+
+.tab-content.hidden {
+    display: none;
+}
+
+/* Step Indicators */
 .step-indicator {
     transition: all 0.3s ease;
 }
@@ -23,6 +48,7 @@ body {
     position: static;
 }
 
+/* Table Styles */
 .table-container {
     max-height: 400px;
     overflow-y: auto;
@@ -47,10 +73,83 @@ body {
     background: #555;
 }
 
+/* Modal Styles */
 .modal {
     transition: opacity 0.25s ease;
 }
 
 .modal-content {
     transition: transform 0.25s ease;
+}
+
+/* Dashboard Chart Containers */
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+
+/* Metric Cards Animation */
+.metric-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3B82F6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .tab-nav {
+        font-size: 0.875rem;
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .metric-card {
+        margin-bottom: 1rem;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+}
+
+/* Dark mode support (optional) */
+@media (prefers-color-scheme: dark) {
+    .bg-white {
+        background-color: #1f2937;
+    }
+    
+    .text-gray-900 {
+        color: #f9fafb;
+    }
+    
+    .text-gray-600 {
+        color: #d1d5db;
+    }
 }

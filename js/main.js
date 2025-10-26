@@ -14,6 +14,8 @@ import uiController from './uiController.js';
 import settingsController from './settingsController.js';
 import reportController from './reportController.js';
 import exportController from './pdfExportController.js';
+import dashboardController from './dashboardController.js';
+import tabController from './tabController.js';
 
 class App {
     constructor() {
@@ -45,6 +47,11 @@ class App {
             eventBus.emit('dataUpdated');
             eventBus.emit('logUpdated');
             settingsController.switchTab('contractors');
+            
+            // Initialize dashboard with default data
+            setTimeout(() => {
+                dashboardController.refreshDashboard();
+            }, 100);
         });
     }
 }
