@@ -13,7 +13,6 @@ import stateManager from './stateManager.js';
 import uiController from './uiController.js';
 import settingsController from './settingsController.js';
 import reportController from './reportController.js';
-import exportController from './pdfExportController.js';
 import dashboardController from './dashboardController.js';
 import tabController from './tabController.js';
 
@@ -24,6 +23,8 @@ class App {
 
     initialize() {
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('App initializing...');
+            
             // Check critical dependencies
             const dependencies = {
                 'Google Charts': typeof google !== 'undefined',
@@ -42,16 +43,28 @@ class App {
                 console.warn('Missing dependencies:', missingDeps);
             }
             
+            // Initialize state and UI
             stateManager.loadData();
             uiController.setInitialDate();
+            uiController.populateFormOptions();
+            
+            // Initialize dashboard
+            dashboardController.updateDateTime();
+            setInterval(() => dashboardController.updateDateTime(), 1000);
+            
+            // Initialize settings
+            settingsController.switchTab('contractors');
+            
+            // Emit initial events
             eventBus.emit('dataUpdated');
             eventBus.emit('logUpdated');
-            settingsController.switchTab('contractors');
             
             // Initialize dashboard with default data
             setTimeout(() => {
                 dashboardController.refreshDashboard();
             }, 100);
+            
+            console.log('App initialized successfully');
         });
     }
 }
