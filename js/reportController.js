@@ -109,16 +109,7 @@ class ReportController {
             return;
         }
 
-        const sourceToContractor = {};
-        const contractorToDest = {};
-
-        reportData.forEach(entry => {
-            const sourceContractorKey = `${entry.source}|${entry.contractor}`;
-            sourceToContractor[sourceContractorKey] = (sourceToContractor[sourceContractorKey] || 0) + 1;
-
-            const contractorDestKey = `${entry.contractor}|${entry.destination}`;
-            contractorToDest[contractorDestKey] = (contractorToDest[contractorDestKey] || 0) + 1;
-        });
+        const sankeyData = this.generateSankeyData(reportData);
 
         let lineChartLabels = [];
         let truckCountData = [];
@@ -184,11 +175,8 @@ class ReportController {
             </div>
 
             <div class="mb-8">
-               <h4 class="font-semibold mb-2 text-gray-700">Dispatch Flow Overview</h4>
-               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   ${this.createFlowTable('Source to Contractor', sourceToContractor)}
-                   ${this.createFlowTable('Contractor to Destination', contractorToDest)}
-               </div>
+                <h4 class="font-semibold mb-2 text-gray-700">Dispatch Flow Overview</h4>
+                <div id="sankey-chart" class="w-full h-96"></div>
             </div>
             <hr class="my-8"/>
 
@@ -220,6 +208,7 @@ class ReportController {
 
         this.elements.reportOutput.innerHTML = reportHTML;
 
+        chartController.createSankeyChart(sankeyData);
         chartController.createTrendChart(lineChartLabels, truckCountData, capacityData);
 
         chartController.createDoughnutChart('sourceChart', 'By Source', bySource);
@@ -227,19 +216,32 @@ class ReportController {
         chartController.createDoughnutChart('contractorChart', 'By Contractor', byContractor);
     }
 
-    createFlowTable(title, data) {
-        let table = `<div><h4 class="font-semibold mb-2">${title}</h4><div class="overflow-x-auto"><table class="w-full text-sm">
-            <thead class="bg-gray-50"><tr>
-            <th class="p-2 text-left font-medium text-gray-600">From</th>
-            <th class="p-2 text-left font-medium text-gray-600">To</th>
-            <th class="p-2 text-right font-medium text-gray-600">Count</th>
-            </tr></thead><tbody>`;
-        for (const key in data) {
-            const [from, to] = key.split('|');
-            table += `<tr class="border-b"><td class="p-2">${from}</td><td class="p-2">${to}</td><td class="p-2 text-right">${data[key]}</td></tr>`;
-        }
-        table += `</tbody></table></div></div>`;
-        return table;
+    generateSankeyData(reportData) {
+        const nodes = new Set();
+        const links = {};
+
+        reportData.forEach(entry => {
+            nodes.add(entry.source);
+            nodes.add(entry.contractor);
+            nodes.add(entry.destination);
+
+            const sourceContractor = `${entry.source}|${entry.contractor}`;
+            links[sourceContractor] = (links[sourceContractor] || 0) + 1;
+
+            const contractorDest = `${entry.contractor}|${entry.destination}`;
+            links[contractorDest] = (links[contractorDest] || 0) + 1;
+        });
+
+        const nodeArray = Array.from(nodes).map(name => ({ name }));
+
+        const linkArray = Object.entries(links).map(([key, value]) => {
+            const [source, target] = key.split('|');
+            const sourceIndex = nodeArray.findIndex(n => n.name === source);
+            const targetIndex = nodeArray.findIndex(n => n.name === target);
+            return { source: sourceIndex, target: targetIndex, value };
+        });
+
+        return { nodes: nodeArray, links: linkArray };
     }
 
     groupData(reportData, key) {

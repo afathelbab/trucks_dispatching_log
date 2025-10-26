@@ -62,20 +62,19 @@ class ExportController {
                 y += imgHeight + 10;
             }
 
-            // --- Flow Tables ---
-            const flowTables = reportContent.querySelectorAll('.flow-table');
-            if(flowTables.length > 0) {
-                pdf.text("Dispatch Flow Overview", margin, y);
-                y += 5;
-                for (const table of flowTables) {
-                    pdf.autoTable({
-                        html: table,
-                        startY: y,
-                        theme: 'grid',
-                        headStyles: { fillColor: [243, 244, 246], textColor: [0, 0, 0] },
-                    });
-                    y = pdf.autoTable.previous.finalY + 10;
+            // --- Matrix Chart ---
+            const matrixChart = await this.createMatrixChart(chartController.sankeyData);
+            if(matrixChart) {
+                if (y + 100 > pageHeight) { // Estimate space for chart
+                    pdf.addPage();
+                    y = margin;
                 }
+                pdf.text("Dispatch Flow Matrix", margin, y);
+                y += 5;
+                const imgWidth = pageWidth - margin * 2;
+                const imgHeight = (matrixChart.height * imgWidth) / matrixChart.width;
+                pdf.addImage(matrixChart.toDataURL('image/png'), 'PNG', margin, y, imgWidth, imgHeight);
+                y += imgHeight + 10;
             }
 
             // --- Trend Chart ---
@@ -160,6 +159,74 @@ class ExportController {
             console.error("Error exporting to PDF:", error);
             alert("An error occurred while exporting to PDF. Please check the console for details.");
         }
+    }
+
+    async createMatrixChart(data) {
+        if (!data || !data.nodes || !data.links) return null;
+
+        const { nodes, links } = data;
+        const matrix = [];
+        const nodeNames = nodes.map(n => n.name);
+
+        // Initialize matrix
+        for (let i = 0; i < nodeNames.length; i++) {
+            matrix[i] = new Array(nodeNames.length).fill(0);
+        }
+
+        // Populate matrix
+        links.forEach(link => {
+            matrix[link.source][link.target] = link.value;
+        });
+
+        const width = 800;
+        const height = 800;
+        const margin = { top: 100, right: 50, bottom: 50, left: 100 };
+
+        const svg = d3.create("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("viewBox", [0, 0, width, height])
+            .style("background", "white");
+
+        const x = d3.scaleBand().domain(d3.range(nodeNames.length)).range([margin.left, width - margin.right]);
+        const y = d3.scaleBand().domain(d3.range(nodeNames.length)).range([margin.top, height - margin.bottom]);
+
+        svg.append("g")
+            .attr("transform", `translate(0, ${margin.top})`)
+            .call(d3.axisTop(x).tickFormat(i => nodeNames[i]))
+            .selectAll("text")
+            .attr("transform", "rotate(-45)")
+            .style("text-anchor", "start");
+
+        svg.append("g")
+            .attr("transform", `translate(${margin.left}, 0)`)
+            .call(d3.axisLeft(y).tickFormat(i => nodeNames[i]));
+
+        const color = d3.scaleSequential(d3.interpolateBlues).domain([0, d3.max(links, d => d.value)]);
+
+        svg.append("g")
+            .selectAll()
+            .data(links)
+            .join("rect")
+            .attr("x", d => x(d.target))
+            .attr("y", d => y(d.source))
+            .attr("width", x.bandwidth())
+            .attr("height", y.bandwidth())
+            .attr("fill", d => color(d.value));
+
+        svg.append("g")
+            .selectAll()
+            .data(links)
+            .join("text")
+            .attr("x", d => x(d.target) + x.bandwidth() / 2)
+            .attr("y", d => y(d.source) + y.bandwidth() / 2)
+            .attr("dy", "0.35em")
+            .attr("text-anchor", "middle")
+            .attr("fill", d => d.value > d3.max(links, l => l.value) / 2 ? "white" : "black")
+            .text(d => d.value);
+
+        const canvas = await html2canvas(svg.node(), { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+        return canvas;
     }
 
     exportToExcel() {

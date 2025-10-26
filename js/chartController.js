@@ -4,6 +4,7 @@ import stateManager from './stateManager.js';
 class ChartController {
     constructor() {
         this.reportCharts = {};
+        this.sankeyData = null;
     }
 
     destroyCharts() {
@@ -23,15 +24,21 @@ class ChartController {
         return this.reportCharts[chartId];
     }
 
-    createSankeyChart(dataArray) {
-        if (dataArray.length <= 1) return;
+    createSankeyChart(data) {
+        this.sankeyData = data;
+        if (data.nodes.length <= 1) return;
 
         google.charts.load('current', {'packages':['sankey']});
-        google.charts.setOnLoadCallback(this.drawSankeyChart.bind(this, dataArray));
+        google.charts.setOnLoadCallback(this.drawSankeyChart.bind(this, data));
     }
 
-    drawSankeyChart(dataArray) {
-        const data = google.visualization.arrayToDataTable(dataArray);
+    drawSankeyChart(data) {
+        const dataArray = [['From', 'To', 'Weight']];
+        data.links.forEach(link => {
+            dataArray.push([data.nodes[link.source].name, data.nodes[link.target].name, link.value]);
+        });
+
+        const dataTable = google.visualization.arrayToDataTable(dataArray);
 
         const options = {
             height: 450,
@@ -46,8 +53,8 @@ class ChartController {
             }
         };
 
-        const chart = new google.visualization.Sankey(document.getElementById('sankeyChart_div'));
-        chart.draw(data, options);
+        const chart = new google.visualization.Sankey(document.getElementById('sankey-chart'));
+        chart.draw(dataTable, options);
         this.reportCharts['sankeyChart'] = chart;
     }
 
