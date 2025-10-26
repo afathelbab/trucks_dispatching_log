@@ -6,15 +6,19 @@ import settingsController from './settingsController.js';
 class TabController {
     constructor() {
         this.currentTab = 'dashboard';
+        this.isDarkMode = false;
         this.initializeElements();
         this.attachEventListeners();
         this.initializeTabs();
+        this.loadThemePreference();
     }
 
     initializeElements() {
         this.elements = {
             tabNavs: document.querySelectorAll('.tab-nav'),
-            tabContents: document.querySelectorAll('.tab-content')
+            tabContents: document.querySelectorAll('.tab-content'),
+            themeToggle: document.getElementById('theme-toggle'),
+            body: document.body
         };
     }
 
@@ -25,6 +29,13 @@ class TabController {
                 this.switchTab(tabId);
             });
         });
+
+        // Theme toggle
+        if (this.elements.themeToggle) {
+            this.elements.themeToggle.addEventListener('click', () => {
+                this.toggleTheme();
+            });
+        }
     }
 
     initializeTabs() {
@@ -70,6 +81,37 @@ class TabController {
                 // Log functionality is already initialized
                 break;
         }
+    }
+
+    toggleTheme() {
+        this.isDarkMode = !this.isDarkMode;
+        this.applyTheme();
+        this.saveThemePreference();
+    }
+
+    applyTheme() {
+        if (this.isDarkMode) {
+            this.elements.body.classList.add('dark-theme');
+            this.elements.body.classList.remove('light-theme');
+        } else {
+            this.elements.body.classList.add('light-theme');
+            this.elements.body.classList.remove('dark-theme');
+        }
+    }
+
+    loadThemePreference() {
+        const savedTheme = localStorage.getItem('theme-preference');
+        if (savedTheme) {
+            this.isDarkMode = savedTheme === 'dark';
+        } else {
+            // Default to system preference
+            this.isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+        this.applyTheme();
+    }
+
+    saveThemePreference() {
+        localStorage.setItem('theme-preference', this.isDarkMode ? 'dark' : 'light');
     }
 
     getCurrentTab() {

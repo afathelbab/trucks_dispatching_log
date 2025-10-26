@@ -1,24 +1,63 @@
-body {
-    font-family: 'Inter', sans-serif;
+/* Dark theme styles */
+.dark-theme {
+    --bg-primary: #1f2937;
+    --bg-secondary: #374151;
+    --bg-tertiary: #4b5563;
+    --text-primary: #f9fafb;
+    --text-secondary: #d1d5db;
+    --text-tertiary: #9ca3af;
+    --border-color: #4b5563;
+    --shadow-color: rgba(0, 0, 0, 0.3);
 }
 
-/* Tab Navigation Styles */
+.light-theme {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --bg-tertiary: #f3f4f6;
+    --text-primary: #111827;
+    --text-secondary: #374151;
+    --text-tertiary: #6b7280;
+    --border-color: #e5e7eb;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Apply theme variables */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Header styles */
+header {
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Tab navigation */
 .tab-nav {
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    border-color: var(--border-color);
     transition: all 0.3s ease;
     cursor: pointer;
 }
 
-.tab-nav.active {
-    border-bottom-color: #3B82F6 !important;
-    color: #3B82F6 !important;
-}
-
 .tab-nav:hover {
-    color: #374151;
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
-/* Tab Content */
+.tab-nav.active {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: #3b82f6;
+}
+
+/* Content areas */
 .tab-content {
+    background-color: var(--bg-primary);
     display: block;
 }
 
@@ -26,80 +65,83 @@ body {
     display: none;
 }
 
-/* Step Indicators */
-.step-indicator {
-    transition: all 0.3s ease;
+/* Form elements */
+input, select, textarea {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
 }
 
-.form-section {
-    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+input:focus, select:focus, textarea:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.hidden-section {
-    opacity: 0;
-    transform: translateY(20px);
-    pointer-events: none;
-    position: absolute;
+/* Buttons */
+button {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
 }
 
-.visible-section {
-    opacity: 1;
-    transform: translateY(0);
-    position: static;
+button:hover {
+    background-color: var(--bg-tertiary);
 }
 
-/* Table Styles */
-.table-container {
-    max-height: 400px;
-    overflow-y: auto;
+.btn-primary {
+    background-color: #3b82f6;
+    color: white;
 }
 
-/* Custom scrollbar */
-.table-container::-webkit-scrollbar {
-    width: 8px;
+.btn-primary:hover {
+    background-color: #2563eb;
 }
 
-.table-container::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
+/* Cards */
+.card {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
 }
 
-.table-container::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
+/* Tables */
+table {
+    background-color: var(--bg-secondary);
 }
 
-.table-container::-webkit-scrollbar-thumb:hover {
-    background: #555;
+th {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
 }
 
-/* Modal Styles */
-.modal {
-    transition: opacity 0.25s ease;
+td {
+    color: var(--text-secondary);
+    border-color: var(--border-color);
 }
 
-.modal-content {
-    transition: transform 0.25s ease;
-}
-
-/* Dashboard Chart Containers */
+/* Charts */
 .chart-container {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
     position: relative;
     height: 300px;
 }
 
-/* Metric Cards Animation */
+/* Metric cards */
 .metric-card {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .metric-card:hover {
+    background-color: var(--bg-tertiary);
     transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 25px var(--shadow-color);
 }
 
-/* Loading States */
+/* Loading states */
 .loading {
+    background-color: var(--bg-tertiary);
     opacity: 0.6;
     pointer-events: none;
 }
@@ -112,8 +154,8 @@ body {
     width: 20px;
     height: 20px;
     margin: -10px 0 0 -10px;
-    border: 2px solid #f3f3f3;
-    border-top: 2px solid #3B82F6;
+    border: 2px solid var(--bg-tertiary);
+    border-top: 2px solid #3b82f6;
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -123,7 +165,55 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* Responsive Design */
+/* Error messages */
+.error-message {
+    background-color: #fef2f2;
+    color: #dc2626;
+    border-color: #fecaca;
+}
+
+.dark-theme .error-message {
+    background-color: #7f1d1d;
+    color: #fca5a5;
+    border-color: #991b1b;
+}
+
+/* Success messages */
+.success-message {
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border-color: #bbf7d0;
+}
+
+.dark-theme .success-message {
+    background-color: #14532d;
+    color: #86efac;
+    border-color: #166534;
+}
+
+/* Theme toggle button */
+#theme-toggle {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+#theme-toggle:hover {
+    background-color: var(--bg-tertiary);
+}
+
+/* Settings button */
+#settings-btn {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+#settings-btn:hover {
+    background-color: var(--bg-tertiary);
+}
+
+/* Responsive design */
 @media (max-width: 768px) {
     .tab-nav {
         font-size: 0.875rem;
@@ -139,17 +229,9 @@ body {
     }
 }
 
-/* Dark mode support (optional) */
-@media (prefers-color-scheme: dark) {
-    .bg-white {
-        background-color: #1f2937;
-    }
-    
-    .text-gray-900 {
-        color: #f9fafb;
-    }
-    
-    .text-gray-600 {
-        color: #d1d5db;
-    }
+/* Animation for theme transition */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
+
+/* Existing styles */
