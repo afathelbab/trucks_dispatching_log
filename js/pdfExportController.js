@@ -227,8 +227,10 @@ class ExportController {
                 .text(link.value);
         });
 
-        // Temporarily append to the body to ensure styles are applied
         const svgNode = svg.node();
+        await this.inlineStyles(svgNode);
+
+        // Temporarily append to the body to ensure styles are applied
         svgNode.style.position = 'absolute';
         svgNode.style.left = '-9999px';
         document.body.appendChild(svgNode);
@@ -245,6 +247,42 @@ class ExportController {
             // Clean up
             document.body.removeChild(svgNode);
         }
+    }
+
+    async inlineStyles(svgElement) {
+        const promises = [];
+        const elements = svgElement.querySelectorAll('*');
+
+        elements.forEach(el => {
+            const style = window.getComputedStyle(el);
+            let styleString = '';
+            for (let i = 0; i < style.length; i++) {
+                const prop = style[i];
+                styleString += `${prop}: ${style.getPropertyValue(prop)}; `;
+            }
+            el.setAttribute('style', styleString);
+        });
+
+        // Special handling for images
+        const images = svgElement.querySelectorAll('image');
+        images.forEach(image => {
+            const promise = fetch(image.href.baseVal)
+                .then(response => response.blob())
+                .then(blob => {
+                    return new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.onerror = reject;
+                        reader.readAsDataURL(blob);
+                    });
+                })
+                .then(dataUrl => {
+                    image.setAttribute('href', dataUrl);
+                });
+            promises.push(promise);
+        });
+
+        await Promise.all(promises);
     }
 
     exportToExcel() {
