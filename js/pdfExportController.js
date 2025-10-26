@@ -165,18 +165,7 @@ class ExportController {
         if (!data || !data.nodes || !data.links) return null;
 
         const { nodes, links } = data;
-        const matrix = [];
         const nodeNames = nodes.map(n => n.name);
-
-        // Initialize matrix
-        for (let i = 0; i < nodeNames.length; i++) {
-            matrix[i] = new Array(nodeNames.length).fill(0);
-        }
-
-        // Populate matrix
-        links.forEach(link => {
-            matrix[link.source][link.target] = link.value;
-        });
 
         const width = 800;
         const height = 800;
@@ -204,28 +193,24 @@ class ExportController {
 
         const color = d3.scaleSequential(d3.interpolateBlues).domain([0, d3.max(links, d => d.value)]);
 
-        svg.append("g")
-            .selectAll("rect")
-            .data(links)
-            .enter()
-            .append("rect")
-            .attr("x", d => x(d.target))
-            .attr("y", d => y(d.source))
-            .attr("width", x.bandwidth())
-            .attr("height", y.bandwidth())
-            .attr("fill", d => color(d.value));
+        const g = svg.append("g");
 
-        svg.append("g")
-            .selectAll("text")
-            .data(links)
-            .enter()
-            .append("text")
-            .attr("x", d => x(d.target) + x.bandwidth() / 2)
-            .attr("y", d => y(d.source) + y.bandwidth() / 2)
-            .attr("dy", "0.35em")
-            .attr("text-anchor", "middle")
-            .attr("fill", d => d.value > d3.max(links, l => l.value) / 2 ? "white" : "black")
-            .text(d => d.value);
+        links.forEach(link => {
+            g.append("rect")
+                .attr("x", x(link.target))
+                .attr("y", y(link.source))
+                .attr("width", x.bandwidth())
+                .attr("height", y.bandwidth())
+                .attr("fill", color(link.value));
+
+            g.append("text")
+                .attr("x", x(link.target) + x.bandwidth() / 2)
+                .attr("y", y(link.source) + y.bandwidth() / 2)
+                .attr("dy", "0.35em")
+                .attr("text-anchor", "middle")
+                .attr("fill", link.value > d3.max(links, l => l.value) / 2 ? "white" : "black")
+                .text(link.value);
+        });
 
         const canvas = await html2canvas(svg.node(), { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
         return canvas;
