@@ -43,7 +43,7 @@ class SettingsController {
     attachEventListeners() {
         // Settings tabs
         this.elements.settingsTabs.forEach(tab => {
-            tab.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
+            tab.addEventListener('click', (e) => this.switchTab(e.currentTarget.dataset.tab));
         });
 
         // Contractor management

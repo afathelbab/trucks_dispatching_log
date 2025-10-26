@@ -44,10 +44,6 @@ class UIController {
             this.elements.contractorSelect.addEventListener('change', () => this.onContractorChange());
         }
         
-        if (this.elements.licenseSelect) {
-            this.elements.licenseSelect.addEventListener('change', () => this.onLicenseChange());
-        }
-        
         if (this.elements.submitBtn) {
             this.elements.submitBtn.addEventListener('click', () => this.handleSubmit());
         }
@@ -130,8 +126,14 @@ class UIController {
 
     onContractorChange() {
         const contractor = this.elements.contractorSelect.value;
-        if (!contractor) return;
+        if (!contractor) {
+            this.elements.licenseSelect.disabled = true;
+            this.elements.destinationSelect.disabled = true;
+            return;
+        }
 
+        this.elements.licenseSelect.disabled = false;
+        this.elements.destinationSelect.disabled = false;
         this.populateLicenses(contractor);
         this.populateDestinations(contractor);
     }

@@ -43,7 +43,6 @@ class App {
         }
         
         // Initialize controllers
-        this.dashboardController = new DashboardController();
         this.uiController = new UIController();
         this.dashboardController = new DashboardController();
         this.tabController = new TabController(this.dashboardController, this.uiController);
