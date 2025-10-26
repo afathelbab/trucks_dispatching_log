@@ -119,4 +119,4 @@ class TabController {
     }
 }
 
-export default new TabController();
+export default TabController;

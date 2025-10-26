@@ -14,7 +14,7 @@ import uiController from './uiController.js';
 import settingsController from './settingsController.js';
 import reportController from './reportController.js';
 import dashboardController from './dashboardController.js';
-import tabController from './tabController.js';
+import TabController from './tabController.js';
 
 class App {
     constructor() {
@@ -41,6 +41,9 @@ class App {
         if (missingDeps.length > 0) {
             console.warn('Missing dependencies:', missingDeps);
         }
+        
+        // Initialize controllers
+        this.tabController = new TabController();
         
         // Initialize state and UI
         stateManager.loadData();
