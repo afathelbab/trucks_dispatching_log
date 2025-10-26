@@ -119,7 +119,7 @@ class ExportController {
                 y += 5;
 
                 try {
-                    console.log(`Attempting to capture breakdown section: ${title}`
+                    console.log(`Attempting to capture breakdown section: ${title}`);
                     const chartCanvas = await html2canvas(chartContainer, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: true });
                     const chartImg = chartCanvas.toDataURL('image/png');
                     const imgWidth = pageWidth - margin * 2;
