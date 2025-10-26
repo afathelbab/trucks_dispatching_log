@@ -53,16 +53,23 @@ class ExportController {
             // --- Summary Cards ---
             const summaryCards = reportContent.querySelector('.summarycards');
             if (summaryCards) {
-                const canvas = await html2canvas(summaryCards, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-                const imgData = canvas.toDataURL('image/png');
-                const imgWidth = pageWidth - margin * 2;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                if (y + imgHeight + margin > pageHeight) {
-                    pdf.addPage();
-                    y = margin;
+                try {
+                    console.log("Attempting to capture summaryCards...");
+                    const canvas = await html2canvas(summaryCards, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: true });
+                    const imgData = canvas.toDataURL('image/png');
+                    const imgWidth = pageWidth - margin * 2;
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    if (y + imgHeight + margin > pageHeight) {
+                        pdf.addPage();
+                        y = margin;
+                    }
+                    pdf.addImage(imgData, 'PNG', margin, y, imgWidth, imgHeight);
+                    y += imgHeight + 10;
+                    console.log("summaryCards captured successfully.");
+                } catch (error) {
+                    console.error("Error capturing summaryCards:", error);
+                    throw new Error("Failed to capture summaryCards");
                 }
-                pdf.addImage(imgData, 'PNG', margin, y, imgWidth, imgHeight);
-                y += imgHeight + 10;
             }
 
             // --- Matrix Chart ---
@@ -111,12 +118,19 @@ class ExportController {
                 pdf.text(title, margin, y);
                 y += 5;
 
-                const chartCanvas = await html2canvas(chartContainer, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-                const chartImg = chartCanvas.toDataURL('image/png');
-                const imgWidth = pageWidth - margin * 2;
-                const imgHeight = (chartCanvas.height * imgWidth) / chartCanvas.width;
-                pdf.addImage(chartImg, 'PNG', margin, y, imgWidth, imgHeight);
-                y += imgHeight + 10;
+                try {
+                    console.log(`Attempting to capture breakdown section: ${title}`
+                    const chartCanvas = await html2canvas(chartContainer, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: true });
+                    const chartImg = chartCanvas.toDataURL('image/png');
+                    const imgWidth = pageWidth - margin * 2;
+                    const imgHeight = (chartCanvas.height * imgWidth) / chartCanvas.width;
+                    pdf.addImage(chartImg, 'PNG', margin, y, imgWidth, imgHeight);
+                    y += imgHeight + 10;
+                    console.log(`Breakdown section "${title}" captured successfully.`);
+                } catch (error) {
+                    console.error(`Error capturing breakdown section "${title}":`, error);
+                    throw new Error(`Failed to capture breakdown section "${title}"`);
+                }
 
                 if (y + 20 > pageHeight) { // Estimate space for table
                     pdf.addPage();
@@ -221,12 +235,18 @@ class ExportController {
         svgNode.style.left = '-9999px';
         document.body.appendChild(svgNode);
 
-        const canvas = await html2canvas(svgNode, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-
-        // Clean up
-        document.body.removeChild(svgNode);
-
-        return canvas;
+        try {
+            console.log("Attempting to capture matrix chart...");
+            const canvas = await html2canvas(svgNode, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: true });
+            console.log("Matrix chart captured successfully.");
+            return canvas;
+        } catch (error) {
+            console.error("Error capturing matrix chart:", error);
+            throw new Error("Failed to capture matrix chart");
+        } finally {
+            // Clean up
+            document.body.removeChild(svgNode);
+        }
     }
 
     exportToExcel() {
