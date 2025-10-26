@@ -13,6 +13,13 @@ class ExportController {
 
     async exportToPDF() {
         try {
+            // Add dependency check
+            if (typeof html2canvas === 'undefined') {
+                console.error('html2canvas not loaded');
+                alert("PDF export functionality requires html2canvas library.");
+                return;
+            }
+
             const reportContent = document.getElementById('report-output');
             if (reportContent.classList.contains('hidden')) {
                 alert("Please generate a report first.");
@@ -180,6 +187,12 @@ class ExportController {
 
     async createMatrixChart(data) {
         try {
+            // Add dependency check
+            if (typeof d3 === 'undefined') {
+                console.error('D3.js not loaded');
+                return null;
+            }
+
             console.log("Creating matrix chart with data:", data);
             console.log("D3 object:", d3);
 
@@ -275,13 +288,22 @@ class ExportController {
     }
 
     exportToExcel() {
+        // Add dependency check
+        if (typeof XLSX === 'undefined') {
+            console.error('XLSX library not loaded');
+            alert("Excel export functionality requires XLSX library.");
+            return;
+        }
+
         const wb = XLSX.utils.book_new();
         const summaryTable = document.getElementById('summary-table');
         if (summaryTable) {
             const ws = XLSX.utils.table_to_sheet(summaryTable);
             XLSX.utils.book_append_sheet(wb, ws, "Summary");
+            XLSX.writeFile(wb, 'dispatch_report.xlsx');
+        } else {
+            alert("No summary table found to export.");
         }
-        XLSX.writeFile(wb, 'dispatch_report.xlsx');
     }
 }
 

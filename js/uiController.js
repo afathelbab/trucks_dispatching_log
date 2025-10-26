@@ -398,6 +398,21 @@ class UIController {
         const todayString = `${year}-${month}-${day}`;
         this.elements.dispatchDateInput.value = todayString;
     }
+
+    showError(message) {
+        // Create error notification
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50';
+        errorDiv.textContent = message;
+        document.body.appendChild(errorDiv);
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            if (document.body.contains(errorDiv)) {
+                document.body.removeChild(errorDiv);
+            }
+        }, 5000);
+    }
 }
 
 export default new UIController();

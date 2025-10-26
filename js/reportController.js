@@ -44,11 +44,18 @@ class ReportController {
     }
 
     generateMainReport() {
+        // Add loading state
+        this.elements.generateReportBtn.disabled = true;
+        this.elements.generateReportBtn.textContent = 'Generating...';
+        
         const startDateValue = this.elements.reportStartDateInput.value;
         const endDateValue = this.elements.reportEndDateInput.value;
 
         if (!startDateValue || !endDateValue) {
             alert("Please select both a start and end date for the report.");
+            // Restore button state
+            this.elements.generateReportBtn.disabled = false;
+            this.elements.generateReportBtn.textContent = 'Generate';
             return;
         }
 
@@ -57,6 +64,9 @@ class ReportController {
 
         if (startDate > endDate) {
             alert("Start date cannot be after the end date.");
+            // Restore button state
+            this.elements.generateReportBtn.disabled = false;
+            this.elements.generateReportBtn.textContent = 'Generate';
             return;
         }
 
@@ -72,6 +82,10 @@ class ReportController {
     }
 
     generateTruckReport() {
+        // Add loading state
+        this.elements.generateTruckReportBtn.disabled = true;
+        this.elements.generateTruckReportBtn.textContent = 'Generating...';
+        
         const contractor = this.elements.reportContractorSelect.value;
         const license = this.elements.reportLicenseSelect.value;
         const startDateValue = this.elements.truckReportStartDateInput.value;
@@ -79,6 +93,9 @@ class ReportController {
 
         if (!contractor || !license || !startDateValue || !endDateValue) {
             alert("Please select a contractor, truck, and both a start and end date.");
+            // Restore button state
+            this.elements.generateTruckReportBtn.disabled = false;
+            this.elements.generateTruckReportBtn.textContent = 'Generate Truck Report';
             return;
         }
 
@@ -86,6 +103,9 @@ class ReportController {
         const endDate = new Date(endDateValue);
         if (startDate > endDate) {
             alert("Start date cannot be after the end date.");
+            // Restore button state
+            this.elements.generateTruckReportBtn.disabled = false;
+            this.elements.generateTruckReportBtn.textContent = 'Generate Truck Report';
             return;
         }
         startDate.setHours(0, 0, 0, 0);
@@ -100,14 +120,16 @@ class ReportController {
     }
 
     async generateAndDisplayReport(reportData, startDate, endDate) {
+        // Add data validation
+        if (!reportData || reportData.length === 0) {
+            this.elements.reportOutput.innerHTML = `<p class="text-center text-gray-500 py-4">No data available for the selected period.</p>`;
+            this.elements.reportOutput.classList.remove('hidden');
+            return;
+        }
+        
         chartController.destroyCharts();
         this.elements.reportOutput.innerHTML = '';
         this.elements.reportOutput.classList.remove('hidden');
-
-        if (reportData.length === 0) {
-            this.elements.reportOutput.innerHTML = `<p class="text-center text-gray-500 py-4">No data available for the selected period.</p>`;
-            return;
-        }
 
         const sankeyData = this.generateSankeyData(reportData);
 
@@ -217,6 +239,10 @@ class ReportController {
         ];
 
         await Promise.all(chartPromises);
+        
+        // Restore button state after report generation
+        this.elements.generateReportBtn.disabled = false;
+        this.elements.generateReportBtn.textContent = 'Generate';
     }
 
     generateSankeyData(reportData) {
@@ -379,6 +405,10 @@ class ReportController {
 
         tableHTML += `</tbody></table>`;
         this.elements.truckReportOutput.innerHTML = tableHTML;
+        
+        // Restore button state after truck report generation
+        this.elements.generateTruckReportBtn.disabled = false;
+        this.elements.generateTruckReportBtn.textContent = 'Generate Truck Report';
     }
 }
 

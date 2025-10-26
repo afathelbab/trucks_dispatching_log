@@ -1,5 +1,11 @@
 window.addEventListener('error', function(event) {
     console.error('Global error handler caught:', event.error);
+    console.error('Error details:', {
+        message: event.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno
+    });
 });
 
 import eventBus from './eventBus.js';
@@ -16,6 +22,24 @@ class App {
 
     initialize() {
         document.addEventListener('DOMContentLoaded', () => {
+            // Check critical dependencies
+            const dependencies = {
+                'Google Charts': typeof google !== 'undefined',
+                'Chart.js': typeof Chart !== 'undefined',
+                'D3.js': typeof d3 !== 'undefined',
+                'html2canvas': typeof html2canvas !== 'undefined',
+                'jsPDF': typeof window.jspdf !== 'undefined',
+                'XLSX': typeof XLSX !== 'undefined'
+            };
+            
+            const missingDeps = Object.entries(dependencies)
+                .filter(([name, loaded]) => !loaded)
+                .map(([name]) => name);
+                
+            if (missingDeps.length > 0) {
+                console.warn('Missing dependencies:', missingDeps);
+            }
+            
             stateManager.loadData();
             uiController.setInitialDate();
             eventBus.emit('dataUpdated');

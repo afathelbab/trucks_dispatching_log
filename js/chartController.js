@@ -25,6 +25,12 @@ class ChartController {
     }
 
     createSankeyChart(data) {
+        // Add dependency check
+        if (typeof google === 'undefined') {
+            console.error('Google Charts API not loaded');
+            return Promise.resolve();
+        }
+        
         this.sankeyData = data;
         if (data.nodes.length <= 1) return Promise.resolve();
 
@@ -64,6 +70,12 @@ class ChartController {
     }
 
     createTrendChart(labels, truckData, capacityData) {
+        // Add dependency check
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js not loaded');
+            return Promise.resolve();
+        }
+        
         return new Promise((resolve) => {
             const ctx = document.getElementById('trendChart').getContext('2d');
             this.reportCharts['trendChart'] = new Chart(ctx, {
@@ -149,6 +161,12 @@ class ChartController {
     }
 
     createDoughnutChart(chartId, label, dataObject) {
+        // Add dependency check
+        if (typeof Chart === 'undefined') {
+            console.error('Chart.js not loaded');
+            return Promise.resolve();
+        }
+        
         return new Promise((resolve) => {
             const ctx = document.getElementById(chartId).getContext('2d');
             const chartColors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
