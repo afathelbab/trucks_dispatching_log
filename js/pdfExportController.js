@@ -199,11 +199,9 @@ class ExportController {
 
         svg.append("g")
             .attr("transform", `translate(0, ${margin.top})`)
-            .call(d3.axisTop(x).tickFormat(i => nodeNames[i]))
-            .selectAll("text")
-            .attr("transform", "rotate(-45)")
-            .style("text-anchor", "start");
-
+                    .call(d3.axisTop(x).tickFormat(i => nodeNames[i]))
+                    .selectAll("text")
+                    .style("text-anchor", "start");
         svg.append("g")
             .attr("transform", `translate(${margin.left}, 0)`)
             .call(d3.axisLeft(y).tickFormat(i => nodeNames[i]));
