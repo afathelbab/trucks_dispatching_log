@@ -96,11 +96,11 @@ class ExportController {
             // --- Doughnut Charts and Tables ---
             const breakdownSections = reportContent.querySelectorAll('.breakdownsection');
             for (const section of breakdownSections) {
-                const chartCanvas = section.querySelector('canvas');
+                const chartContainer = section.querySelector('div'); // The div containing the canvas
                 const table = section.querySelector('table');
                 const title = section.querySelector('h4').innerText;
 
-                if (y + 90 > pageHeight) { // Estimate space for chart and table
+                if (y + 100 > pageHeight) { // Estimate space for chart
                     pdf.addPage();
                     y = margin;
                 }
@@ -108,19 +108,27 @@ class ExportController {
                 pdf.text(title, margin, y);
                 y += 5;
 
+                const chartCanvas = await html2canvas(chartContainer, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
                 const chartImg = chartCanvas.toDataURL('image/png');
-                pdf.addImage(chartImg, 'PNG', margin, y, 80, 80);
+                const imgWidth = pageWidth - margin * 2;
+                const imgHeight = (chartCanvas.height * imgWidth) / chartCanvas.width;
+                pdf.addImage(chartImg, 'PNG', margin, y, imgWidth, imgHeight);
+                y += imgHeight + 10;
+
+                if (y + 20 > pageHeight) { // Estimate space for table
+                    pdf.addPage();
+                    y = margin;
+                }
 
                 pdf.autoTable({
                     html: table,
                     startY: y,
-                    startX: margin + 90,
                     theme: 'grid',
                     styles: { fontSize: 8 },
                     headStyles: { fillColor: [243, 244, 246] }
                 });
 
-                y = Math.max(y + 90, pdf.autoTable.previous.finalY + 10);
+                y = pdf.autoTable.previous.finalY + 10;
             }
 
             // --- Detailed Summary Table ---

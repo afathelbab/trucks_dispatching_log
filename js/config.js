@@ -2,7 +2,7 @@
 export const config = {
     initialData: {
         contractors: {
-            "Elsamy - السامي": {
+            "Elsamy": {
                 trucks: [
                     { license: "6141-7523", capacity: 47 }, { license: "6536-8561", capacity: 49 },
                     { license: "6141-8512", capacity: 58 }, { license: "3463-3921", capacity: 56 },
@@ -19,9 +19,9 @@ export const config = {
                     { license: "5945-2757", capacity: 50 }, { license: "1752-8471", capacity: 49 },
                     { license: "4678-7176", capacity: 51 }, { license: "9471-1285", capacity: 48 }
                 ],
-                destinations: ["Abu Madi - أبو ماضي", "Elaalamya - العالمية", "Eldawlya - الدولية", "Ultra Extract - ألترا اكستراكت", "Unico - يونيكو"]
+                destinations: ["Abu Madi", "Elaalamya", "Eldawlya", "Ultra Extract", "Unico"]
             },
-            "Elbassyouny - البسيوني": {
+            "Elbassyouny": {
                 trucks: [
                     { license: "1859-2397", capacity: 49 }, { license: "4327-9482", capacity: 51 },
                     { license: "1892-5291", capacity: 61 }, { license: "4869-2487", capacity: 52 },
@@ -32,15 +32,15 @@ export const config = {
                     { license: "9583-5368", capacity: 44 }, { license: "5397-1876", capacity: 55 },
                     { license: "9568-5746", capacity: 48 }, { license: "5746-9568", capacity: 55}
                 ],
-                destinations: ["Abu Madi - أبو ماضي", "Elaalamya - العالمية"]
+                destinations: ["Abu Madi", "Elaalamya"]
             },
-            "Petrotreatment - بتروتريتمنت": {
+            "Petrotreatment": {
                 trucks: [
                     { license: "1954-5398", capacity: null }, // Assuming null capacity for manual entry
                     { license: "6359-4932", capacity: null },
                     { license: "1932-5417", capacity: null }
                 ],
-                destinations: ["Unico - يونيكو"]
+                destinations: ["Unico"]
             }
         },
         sources: [
