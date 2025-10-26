@@ -4,9 +4,11 @@ import eventBus from './eventBus.js';
 class UIController {
     constructor() {
         this.elements = {};
+        this.isDarkMode = false;
         this.initializeElements();
         this.attachEventListeners();
         this.setupEventBusListeners();
+        this.loadThemePreference();
     }
 
     initializeElements() {
@@ -23,10 +25,17 @@ class UIController {
             // Buttons
             submitBtn: document.getElementById('submit-btn'),
             clearBtn: document.getElementById('clear-btn'),
+            settingsBtn: document.getElementById('settings-btn'),
+            closeSettingsBtn: document.getElementById('close-settings-btn'),
+            themeToggle: document.getElementById('theme-toggle'),
+            
+            // Modals
+            settingsModal: document.getElementById('settings-modal'),
             
             // Other elements
             currentDateDisplay: document.getElementById('current-date'),
-            currentTimeDisplay: document.getElementById('current-time')
+            currentTimeDisplay: document.getElementById('current-time'),
+            body: document.body
         };
     }
 
@@ -35,12 +44,40 @@ class UIController {
             this.elements.contractorSelect.addEventListener('change', () => this.onContractorChange());
         }
         
+        if (this.elements.licenseSelect) {
+            this.elements.licenseSelect.addEventListener('change', () => this.onLicenseChange());
+        }
+        
         if (this.elements.submitBtn) {
             this.elements.submitBtn.addEventListener('click', () => this.handleSubmit());
         }
         
         if (this.elements.clearBtn) {
             this.elements.clearBtn.addEventListener('click', () => this.clearForm());
+        }
+        
+        if (this.elements.settingsBtn) {
+            this.elements.settingsBtn.addEventListener('click', () => this.openSettingsModal());
+        }
+        
+        if (this.elements.closeSettingsBtn) {
+            this.elements.closeSettingsBtn.addEventListener('click', () => this.closeSettingsModal());
+        }
+        
+        if (this.elements.themeToggle) {
+            this.elements.themeToggle.addEventListener('click', () => this.toggleTheme());
+        }
+    }
+
+    openSettingsModal() {
+        if (this.elements.settingsModal) {
+            this.elements.settingsModal.classList.remove('hidden');
+        }
+    }
+
+    closeSettingsModal() {
+        if (this.elements.settingsModal) {
+            this.elements.settingsModal.classList.add('hidden');
         }
     }
 
@@ -221,6 +258,34 @@ class UIController {
                 minute: '2-digit' 
             });
         }
+    }
+
+    toggleTheme() {
+        this.isDarkMode = !this.isDarkMode;
+        this.applyTheme();
+        this.saveThemePreference();
+    }
+
+    applyTheme() {
+        if (this.isDarkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }
+
+    loadThemePreference() {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            this.isDarkMode = savedTheme === 'dark';
+        } else {
+            this.isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+        this.applyTheme();
+    }
+
+    saveThemePreference() {
+        localStorage.setItem('theme', this.isDarkMode ? 'dark' : 'light');
     }
 }
 

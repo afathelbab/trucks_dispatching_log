@@ -63,7 +63,7 @@ class SettingsController {
 
         // Data management
         if (this.elements.generateTestDataBtn) {
-            this.elements.generateTestDataBtn.addEventListener('click', () => this.generateTestData());
+            this.elements.generateTestDataBtn.addEventListener('click', () => stateManager.generateTestData());
         }
         
         if (this.elements.clearDataBtn) {

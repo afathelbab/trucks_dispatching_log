@@ -22,10 +22,6 @@ class ReportController {
         if (this.elements.generateReportBtn) {
             this.elements.generateReportBtn.addEventListener('click', () => this.generateMainReport());
         }
-        
-        if (this.elements.generateTruckReportBtn) {
-            this.elements.generateTruckReportBtn.addEventListener('click', () => this.generateTruckReport());
-        }
     }
 
     setupEventBusListeners() {

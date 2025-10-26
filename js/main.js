@@ -43,11 +43,10 @@ class App {
         }
         
         // Initialize controllers
-        this.tabController = new TabController();
         this.dashboardController = new DashboardController();
-        this.reportController = new ReportController();
-        this.settingsController = new SettingsController();
         this.uiController = new UIController();
+        this.dashboardController = new DashboardController();
+        this.tabController = new TabController(this.dashboardController, this.uiController);
         
         // Initialize state and UI
         stateManager.loadData();
