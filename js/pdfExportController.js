@@ -62,21 +62,20 @@ class ExportController {
                 y += imgHeight + 10;
             }
 
-            // --- Sankey Chart ---
-            const sankeyChartDiv = reportContent.querySelector('#sankeyChart_div');
-            if (sankeyChartDiv) {
-                const canvas = await html2canvas(sankeyChartDiv, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-                const imgData = canvas.toDataURL('image/png');
-                const imgWidth = pageWidth - margin * 2;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                if (y + imgHeight + margin > pageHeight) {
-                    pdf.addPage();
-                    y = margin;
-                }
+            // --- Flow Tables ---
+            const flowTables = reportContent.querySelectorAll('.flow-table');
+            if(flowTables.length > 0) {
                 pdf.text("Dispatch Flow Overview", margin, y);
                 y += 5;
-                pdf.addImage(imgData, 'PNG', margin, y, imgWidth, imgHeight);
-                y += imgHeight + 10;
+                for (const table of flowTables) {
+                    pdf.autoTable({
+                        html: table,
+                        startY: y,
+                        theme: 'grid',
+                        headStyles: { fillColor: [243, 244, 246], textColor: [0, 0, 0] },
+                    });
+                    y = pdf.autoTable.previous.finalY + 10;
+                }
             }
 
             // --- Trend Chart ---
@@ -127,7 +126,7 @@ class ExportController {
                     startY: y,
                     theme: 'grid',
                     styles: { fontSize: 8 },
-                    headStyles: { fillColor: [243, 244, 246] }
+                    headStyles: { fillColor: [243, 244, 246], textColor: [0, 0, 0] }
                 });
 
                 y = pdf.autoTable.previous.finalY + 10;
@@ -136,19 +135,21 @@ class ExportController {
             // --- Detailed Summary Table ---
             const summaryTable = document.getElementById('summary-table');
             if (summaryTable) {
-                if (y + 20 > pageHeight) {
-                    pdf.addPage();
-                    y = margin;
-                }
+                pdf.addPage();
+                y = margin;
                 pdf.text("Detailed Summary Table", margin, y);
                 y += 5;
                 pdf.autoTable({ html: summaryTable, startY: y, theme: 'grid' });
             }
 
-            // --- Footer ---
+            // --- Footer and Header ---
             const pageCount = pdf.internal.getNumberOfPages();
-            for(let i = 1; i <= pageCount; i++) {
+            for(let i = 2; i <= pageCount; i++) { // Start from page 2, as page 1 is the cover
                 pdf.setPage(i);
+                // Header
+                pdf.setFontSize(12);
+                pdf.text("Belayiem Petroleum Company - PETROBEL", pdf.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
+                // Footer
                 pdf.setFontSize(10);
                 pdf.text(`Page ${i} of ${pageCount}`, pdf.internal.pageSize.getWidth() / 2, 287, { align: 'center' });
                 pdf.text('Developed by Ahmed Fathelbab - fath@petrobel.org', pdf.internal.pageSize.getWidth() / 2, 292, { align: 'center' });

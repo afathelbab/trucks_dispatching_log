@@ -109,7 +109,6 @@ class ReportController {
             return;
         }
 
-        const sankeyData = [['From', 'To', 'Trucks']];
         const sourceToContractor = {};
         const contractorToDest = {};
 
@@ -120,16 +119,6 @@ class ReportController {
             const contractorDestKey = `${entry.contractor}|${entry.destination}`;
             contractorToDest[contractorDestKey] = (contractorToDest[contractorDestKey] || 0) + 1;
         });
-
-        for (const key in sourceToContractor) {
-            const [source, contractor] = key.split('|');
-            sankeyData.push([source, contractor, sourceToContractor[key]]);
-        }
-
-        for (const key in contractorToDest) {
-            const [contractor, destination] = key.split('|');
-            sankeyData.push([contractor, destination, contractorToDest[key]]);
-        }
 
         let lineChartLabels = [];
         let truckCountData = [];
@@ -196,7 +185,10 @@ class ReportController {
 
             <div class="mb-8">
                <h4 class="font-semibold mb-2 text-gray-700">Dispatch Flow Overview</h4>
-               <div id="sankeyChart_div" class="bg-gray-50 p-2 rounded-lg w-full h-[450px] overflow-hidden" style="background-color: white;"></div>
+               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   ${this.createFlowTable('Source to Contractor', sourceToContractor)}
+                   ${this.createFlowTable('Contractor to Destination', contractorToDest)}
+               </div>
             </div>
             <hr class="my-8"/>
 
@@ -228,12 +220,26 @@ class ReportController {
 
         this.elements.reportOutput.innerHTML = reportHTML;
 
-        chartController.createSankeyChart(sankeyData);
         chartController.createTrendChart(lineChartLabels, truckCountData, capacityData);
 
         chartController.createDoughnutChart('sourceChart', 'By Source', bySource);
         chartController.createDoughnutChart('destinationChart', 'By Destination', byDestination);
         chartController.createDoughnutChart('contractorChart', 'By Contractor', byContractor);
+    }
+
+    createFlowTable(title, data) {
+        let table = `<div><h4 class="font-semibold mb-2">${title}</h4><div class="overflow-x-auto"><table class="w-full text-sm">
+            <thead class="bg-gray-50"><tr>
+            <th class="p-2 text-left font-medium text-gray-600">From</th>
+            <th class="p-2 text-left font-medium text-gray-600">To</th>
+            <th class="p-2 text-right font-medium text-gray-600">Count</th>
+            </tr></thead><tbody>`;
+        for (const key in data) {
+            const [from, to] = key.split('|');
+            table += `<tr class="border-b"><td class="p-2">${from}</td><td class="p-2">${to}</td><td class="p-2 text-right">${data[key]}</td></tr>`;
+        }
+        table += `</tbody></table></div></div>`;
+        return table;
     }
 
     groupData(reportData, key) {
