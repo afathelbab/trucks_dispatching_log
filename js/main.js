@@ -3,7 +3,7 @@ import stateManager from './stateManager.js';
 import uiController from './uiController.js';
 import settingsController from './settingsController.js';
 import reportController from './reportController.js';
-import exportController from './exportController.js';
+import exportController from './pdfExportController.js';
 
 class App {
     constructor() {
