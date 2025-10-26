@@ -186,103 +186,88 @@ class ExportController {
 
         const width = 800;
         const height = 800;
-        const margin = { top: 100, right: 50, bottom: 50, left: 100 };
+        const outerRadius = Math.min(width, height) * 0.5 - 100;
+        const innerRadius = outerRadius - 20;
 
         const svg = d3.create("svg")
             .attr("width", width)
             .attr("height", height)
-            .attr("viewBox", [0, 0, width, height])
+            .attr("viewBox", [-width / 2, -height / 2, width, height])
             .style("background", "white");
 
-        const x = d3.scaleBand().domain(d3.range(nodeNames.length)).range([margin.left, width - margin.right]);
-        const y = d3.scaleBand().domain(d3.range(nodeNames.length)).range([margin.top, height - margin.bottom]);
+        const matrix = (() => {
+            const index = new Map(nodeNames.map((name, i) => [name, i]));
+            const matrix = Array.from(index, () => new Array(index.size).fill(0));
+            for (const { source, target, value } of links) {
+                matrix[source][target] += value;
+            }
+            return matrix;
+        })();
+
+        const chord = d3.chord()
+            .padAngle(0.05)
+            .sortSubgroups(d3.descending);
+
+        const arc = d3.arc()
+            .innerRadius(innerRadius)
+            .outerRadius(outerRadius);
+
+        const ribbon = d3.ribbon()
+            .radius(innerRadius);
+
+        const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+        const chords = chord(matrix);
+
+        const group = svg.append("g")
+            .selectAll("g")
+            .data(chords.groups)
+            .join("g");
+
+        group.append("path")
+            .attr("fill", d => color(d.index))
+            .attr("stroke", d => d3.rgb(color(d.index)).darker())
+            .attr("d", arc);
+
+        group.append("text")
+            .each(d => (d.angle = (d.startAngle + d.endAngle) / 2))
+            .attr("dy", "0.35em")
+            .attr("transform", d => `
+                rotate(${(d.angle * 180 / Math.PI - 90)})
+                translate(${outerRadius + 5})
+                ${d.angle > Math.PI ? "rotate(180)" : ""}
+            `)
+            .attr("text-anchor", d => d.angle > Math.PI ? "end" : null)
+            .text((d, i) => nodeNames[i]);
 
         svg.append("g")
-            .attr("transform", `translate(0, ${margin.top})`)
-                    .call(d3.axisTop(x).tickFormat(i => nodeNames[i]))
-                    .selectAll("text")
-                    .style("text-anchor", "start");
-        svg.append("g")
-            .attr("transform", `translate(${margin.left}, 0)`)
-            .call(d3.axisLeft(y).tickFormat(i => nodeNames[i]));
-
-        const color = d3.scaleSequential(d3.interpolateBlues).domain([0, d3.max(links, d => d.value)]);
-
-        const g = svg.append("g");
-
-        links.forEach(link => {
-            g.append("rect")
-                .attr("x", x(link.target))
-                .attr("y", y(link.source))
-                .attr("width", x.bandwidth())
-                .attr("height", y.bandwidth())
-                .attr("fill", color(link.value));
-
-            g.append("text")
-                .attr("x", x(link.target) + x.bandwidth() / 2)
-                .attr("y", y(link.source) + y.bandwidth() / 2)
-                .attr("dy", "0.35em")
-                .attr("text-anchor", "middle")
-                .attr("fill", link.value > d3.max(links, l => l.value) / 2 ? "white" : "black")
-                .text(link.value);
-        });
+            .attr("fill-opacity", 0.67)
+            .selectAll("path")
+            .data(chords)
+            .join("path")
+            .attr("d", ribbon)
+            .attr("fill", d => color(d.target.index))
+            .attr("stroke", d => d3.rgb(color(d.target.index)).darker());
 
         const svgNode = svg.node();
-        await this.inlineStyles(svgNode);
-
+        
         // Temporarily append to the body to ensure styles are applied
         svgNode.style.position = 'absolute';
         svgNode.style.left = '-9999px';
         document.body.appendChild(svgNode);
 
         try {
-            console.log("Attempting to capture matrix chart...");
+            console.log("Attempting to capture chord chart...");
             const canvas = await html2canvas(svgNode, { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: true });
-            console.log("Matrix chart captured successfully.");
+            console.log("Chord chart captured successfully.");
             return canvas;
         } catch (error) {
-            console.error("Error capturing matrix chart:", error);
-            throw new Error("Failed to capture matrix chart");
+            console.error("Error capturing chord chart:", error);
+            throw new Error("Failed to capture chord chart");
         } finally {
             // Clean up
             document.body.removeChild(svgNode);
         }
-    }
-
-    async inlineStyles(svgElement) {
-        const promises = [];
-        const elements = svgElement.querySelectorAll('*');
-
-        elements.forEach(el => {
-            const style = window.getComputedStyle(el);
-            let styleString = '';
-            for (let i = 0; i < style.length; i++) {
-                const prop = style[i];
-                styleString += `${prop}: ${style.getPropertyValue(prop)}; `;
-            }
-            el.setAttribute('style', styleString);
-        });
-
-        // Special handling for images
-        const images = svgElement.querySelectorAll('image');
-        images.forEach(image => {
-            const promise = fetch(image.href.baseVal)
-                .then(response => response.blob())
-                .then(blob => {
-                    return new Promise((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onloadend = () => resolve(reader.result);
-                        reader.onerror = reject;
-                        reader.readAsDataURL(blob);
-                    });
-                })
-                .then(dataUrl => {
-                    image.setAttribute('href', dataUrl);
-                });
-            promises.push(promise);
-        });
-
-        await Promise.all(promises);
     }
 
     exportToExcel() {
