@@ -26,10 +26,57 @@ class ReportController {
         if (this.elements.generateTruckReportBtn) {
             this.elements.generateTruckReportBtn.addEventListener('click', () => this.generateTruckReport());
         }
+        
+        // Populate contractor dropdown and setup license dropdown cascade
+        this.populateTruckReportDropdowns();
+        const contractorSelect = document.getElementById('report-contractor');
+        if (contractorSelect) {
+            contractorSelect.addEventListener('change', () => this.onReportContractorChange());
+        }
+    }
+    
+    populateTruckReportDropdowns() {
+        const contractorSelect = document.getElementById('report-contractor');
+        if (!contractorSelect) return;
+        
+        const contractors = stateManager.getContractors();
+        contractorSelect.innerHTML = '<option value="">All Contractors</option>';
+        contractors.forEach(contractor => {
+            const option = document.createElement('option');
+            option.value = contractor;
+            option.textContent = contractor;
+            contractorSelect.appendChild(option);
+        });
+    }
+    
+    onReportContractorChange() {
+        const contractorSelect = document.getElementById('report-contractor');
+        const licenseSelect = document.getElementById('report-license');
+        
+        if (!contractorSelect || !licenseSelect) return;
+        
+        const selectedContractor = contractorSelect.value;
+        
+        if (!selectedContractor) {
+            licenseSelect.disabled = true;
+            licenseSelect.innerHTML = '<option value="">All Licenses</option>';
+            return;
+        }
+        
+        licenseSelect.disabled = false;
+        const trucks = stateManager.getTrucksForContractor(selectedContractor);
+        licenseSelect.innerHTML = '<option value="">All Licenses</option>';
+        trucks.forEach(truck => {
+            const option = document.createElement('option');
+            option.value = truck.license;
+            option.textContent = truck.license;
+            licenseSelect.appendChild(option);
+        });
     }
 
     setupEventBusListeners() {
         eventBus.on('logUpdated', () => this.refreshReports());
+        eventBus.on('dataUpdated', () => this.populateTruckReportDropdowns());
     }
 
     generateMainReport() {
@@ -239,13 +286,25 @@ class ReportController {
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                         <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">By Contractor</h3>
                         <div class="space-y-2">
                             ${Object.entries(summary.byContractor).map(([contractor, data]) => `
                                 <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
                                     <span class="font-medium text-gray-900 dark:text-white">${contractor}</span>
+                                    <span class="text-sm text-gray-600 dark:text-gray-300">${data.count} trips, ${data.capacity.toFixed(2)} m³</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">By Source</h3>
+                        <div class="space-y-2">
+                            ${Object.entries(summary.bySource).map(([source, data]) => `
+                                <div class="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-700 rounded">
+                                    <span class="font-medium text-gray-900 dark:text-white">${source}</span>
                                     <span class="text-sm text-gray-600 dark:text-gray-300">${data.count} trips, ${data.capacity.toFixed(2)} m³</span>
                                 </div>
                             `).join('')}
@@ -279,12 +338,12 @@ class ReportController {
                     <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead class="bg-gray-50 dark:bg-gray-700">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">License</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Contractor</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total Trips</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Total Capacity</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Avg Capacity</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Destinations</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 dark:text-gray-300 uppercase tracking-wider">License</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 dark:text-gray-300 uppercase tracking-wider">Contractor</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 dark:text-gray-300 uppercase tracking-wider">Total Trips</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 dark:text-gray-300 uppercase tracking-wider">Total Capacity</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 dark:text-gray-300 uppercase tracking-wider">Avg Capacity</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-800 dark:text-gray-300 uppercase tracking-wider">Destinations</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
