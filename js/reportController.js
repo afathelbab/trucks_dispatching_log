@@ -28,50 +28,64 @@ class ReportController {
         }
         
         // Populate contractor dropdown and setup license dropdown cascade
-        this.populateTruckReportDropdowns();
-        const contractorSelect = document.getElementById('report-contractor');
-        if (contractorSelect) {
-            contractorSelect.addEventListener('change', () => this.onReportContractorChange());
-        }
+        // Delay to ensure DOM is ready
+        setTimeout(() => {
+            this.populateTruckReportDropdowns();
+            const contractorSelect = document.getElementById('report-contractor');
+            if (contractorSelect) {
+                contractorSelect.addEventListener('change', () => this.onReportContractorChange());
+            }
+        }, 100);
     }
     
     populateTruckReportDropdowns() {
         const contractorSelect = document.getElementById('report-contractor');
-        if (!contractorSelect) return;
-        
-        const contractors = stateManager.getContractors();
-        contractorSelect.innerHTML = '<option value="">All Contractors</option>';
-        contractors.forEach(contractor => {
-            const option = document.createElement('option');
-            option.value = contractor;
-            option.textContent = contractor;
-            contractorSelect.appendChild(option);
-        });
-    }
-    
-    onReportContractorChange() {
-        const contractorSelect = document.getElementById('report-contractor');
-        const licenseSelect = document.getElementById('report-license');
-        
-        if (!contractorSelect || !licenseSelect) return;
-        
-        const selectedContractor = contractorSelect.value;
-        
-        if (!selectedContractor) {
-            licenseSelect.disabled = true;
-            licenseSelect.innerHTML = '<option value="">All Licenses</option>';
+        if (!contractorSelect) {
+            console.warn('report-contractor element not found');
             return;
         }
         
-        licenseSelect.disabled = false;
-        const trucks = stateManager.getTrucksForContractor(selectedContractor);
-        licenseSelect.innerHTML = '<option value="">All Licenses</option>';
-        trucks.forEach(truck => {
-            const option = document.createElement('option');
-            option.value = truck.license;
-            option.textContent = truck.license;
-            licenseSelect.appendChild(option);
-        });
+        try {
+            const contractors = stateManager.getContractors();
+            contractorSelect.innerHTML = '<option value="">All Contractors</option>';
+            contractors.forEach(contractor => {
+                const option = document.createElement('option');
+                option.value = contractor;
+                option.textContent = contractor;
+                contractorSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error populating truck report dropdowns:', error);
+        }
+    }
+    
+    onReportContractorChange() {
+        try {
+            const contractorSelect = document.getElementById('report-contractor');
+            const licenseSelect = document.getElementById('report-license');
+            
+            if (!contractorSelect || !licenseSelect) return;
+            
+            const selectedContractor = contractorSelect.value;
+            
+            if (!selectedContractor) {
+                licenseSelect.disabled = true;
+                licenseSelect.innerHTML = '<option value="">All Licenses</option>';
+                return;
+            }
+            
+            licenseSelect.disabled = false;
+            const trucks = stateManager.getTrucksForContractor(selectedContractor);
+            licenseSelect.innerHTML = '<option value="">All Licenses</option>';
+            trucks.forEach(truck => {
+                const option = document.createElement('option');
+                option.value = truck.license;
+                option.textContent = truck.license;
+                licenseSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error handling contractor change:', error);
+        }
     }
 
     setupEventBusListeners() {
