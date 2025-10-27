@@ -116,8 +116,23 @@ class SettingsController {
             panel.classList.toggle('hidden', !isTargetTab);
         });
         
-        // Refresh the panel content
-        this.refreshSettings();
+        // Refresh specific panel based on tabId
+        switch(tabId) {
+            case 'contractors':
+                this.refreshContractorPanel();
+                break;
+            case 'trucks':
+                this.refreshTruckPanel();
+                break;
+            case 'sources':
+                this.refreshSourcePanel();
+                break;
+            case 'destinations':
+                this.refreshDestinationsPanel();
+                break;
+            default:
+                this.refreshSettings();
+        }
     }
 
     refreshSettings() {
@@ -429,11 +444,10 @@ class SettingsController {
         if (!this.elements.destinationsPanel) return;
         
         const contractors = stateManager.getContractors();
-        let allDestinations = stateManager.getAllDestinations();
         
         let html = `
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Destinations</h3>
-            <p class="text-sm text-gray-600 mb-4">Destinations are managed per contractor. Select a contractor to manage their destinations.</p>
+            <p class="text-sm text-gray-600 mb-4">Destinations are managed per contractor.</p>
             <div class="space-y-4 max-h-96 overflow-y-auto">
         `;
         
