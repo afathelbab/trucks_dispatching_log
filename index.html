@@ -53,25 +53,25 @@
     <nav class="bg-white dark:bg-gray-800 border-b">
         <div class="container mx-auto px-4">
             <div class="flex space-x-8">
-                <button data-tab="dashboard" class="tab-nav active py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600">
+                        <button data-tab="dashboard" class="tab-nav active py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600 dark:text-blue-400">
                     <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                     </svg>
                     Dashboard
                 </button>
-                <button data-tab="data-entry" class="tab-nav py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                <button data-tab="data-entry" class="tab-nav py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300">
                     <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
                     Data Entry
                 </button>
-                <button data-tab="reports" class="tab-nav py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                <button data-tab="reports" class="tab-nav py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300">
                     <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
                     Reports
                 </button>
-                <button data-tab="log" class="tab-nav py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                <button data-tab="log" class="tab-nav py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-300">
                     <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>
@@ -213,7 +213,7 @@
 
         <!-- Data Entry Tab -->
         <div id="data-entry-tab" class="tab-content hidden">
-            <div class="bg-white rounded-xl shadow-lg p-6 md:p-8">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 md:p-8">
                 <!-- Step Indicators -->
                 <div class="flex items-center justify-center mb-8 space-x-4">
                     <div id="step-1-indicator" class="step-indicator flex flex-col items-center space-y-2">
@@ -242,20 +242,20 @@
                         </div>
                         <div class="md:col-span-2 space-y-4">
                             <div>
-                                <label for="contractor" class="block text-sm font-medium text-gray-700 mb-1">Contractor</label>
-                                <select id="contractor" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                                <label for="contractor" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contractor</label>
+                                <select id="contractor" class="w-full p-3 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 dark:text-gray-100">
                                     <option value="">-- Select a Contractor --</option>
                                 </select>
                             </div>
                             <div>
-                                <label for="license" class="block text-sm font-medium text-gray-700 mb-1">License Number</label>
-                                <select id="license" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" disabled>
+                                <label for="license" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">License Number</label>
+                                    <select id="license" class="w-full p-3 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 dark:text-gray-100" disabled>
                                     <option value="">-- Select License Number --</option>
                                 </select>
                             </div>
                             <div>
-                                <label for="capacity" class="block text-sm font-medium text-gray-700 mb-1">Capacity (m³)</label>
-                                <input type="number" id="capacity" step="0.01" class="w-full p-3 bg-gray-200 border-gray-300 rounded-lg" readonly>
+                                <label for="capacity" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Capacity (m³)</label>
+                                    <input type="number" id="capacity" step="0.01" class="w-full p-3 bg-gray-200 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100" readonly>
                             </div>
                         </div>
                     </div>
@@ -269,14 +269,14 @@
                         </div>
                         <div class="md:col-span-2 space-y-4">
                             <div>
-                                <label for="source" class="block text-sm font-medium text-gray-700 mb-1">Source</label>
-                                <select id="source" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                                <label for="source" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Source</label>
+                                    <select id="source" class="w-full p-3 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 dark:text-gray-100">
                                     <option value="">-- Select a Source --</option>
                                 </select>
                             </div>
                             <div>
-                                <label for="destination" class="block text-sm font-medium text-gray-700 mb-1">Destination</label>
-                                <select id="destination" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" disabled>
+                                <label for="destination" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Destination</label>
+                                    <select id="destination" class="w-full p-3 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 dark:text-gray-100" disabled>
                                     <option value="">-- Select a Destination --</option>
                                 </select>
                             </div>
@@ -292,12 +292,12 @@
                         </div>
                         <div class="md:col-span-2 space-y-4">
                             <div>
-                                <label for="dispatch-date" class="block text-sm font-medium text-gray-700 mb-1">Dispatch Date</label>
-                                <input type="date" id="dispatch-date" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                                <label for="dispatch-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dispatch Date</label>
+                                    <input type="date" id="dispatch-date" class="w-full p-3 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 dark:text-gray-100">
                             </div>
                             <div>
-                                <label for="shift" class="block text-sm font-medium text-gray-700 mb-1">Shift Time</label>
-                                <select id="shift" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                                <label for="shift" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Shift Time</label>
+                                    <select id="shift" class="w-full p-3 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 dark:text-gray-100">
                                     <option value="">-- Select Shift Time --</option>
                                     <option value="Day Shift">Day Shift</option>
                                     <option value="Night Shift - Before Midnight">Night Shift - Before Midnight</option>
@@ -322,7 +322,7 @@
             <div class="space-y-8">
                 <!-- General Report Section -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                         <svg class="w-6 h-6 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
@@ -330,12 +330,12 @@
                     </h2>
                     <div class="flex flex-col sm:flex-row items-center gap-4">
                         <div class="w-full sm:w-auto flex-grow">
-                            <label for="report-start-date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-                            <input type="date" id="report-start-date" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                            <label for="report-start-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
+                            <input type="date" id="report-start-date" class="w-full p-3 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 dark:text-gray-100">
                         </div>
                         <div class="w-full sm:w-auto flex-grow">
-                            <label for="report-end-date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-                            <input type="date" id="report-end-date" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                            <label for="report-end-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date</label>
+                            <input type="date" id="report-end-date" class="w-full p-3 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 dark:text-gray-100">
                         </div>
                         <button id="generate-report-btn" class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition self-end">
                             Generate
@@ -348,7 +348,7 @@
                 
                 <!-- Truck Specific Reporting Section -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
                         <svg class="w-6 h-6 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                         </svg>
@@ -356,16 +356,16 @@
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                         <div>
-                            <label for="report-contractor" class="block text-sm font-medium text-gray-700 mb-1">Contractor</label>
-                            <select id="report-contractor" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition"></select>
+                            <label for="report-contractor" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contractor</label>
+                            <select id="report-contractor" class="w-full p-3 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 dark:text-gray-100"></select>
                         </div>
                         <div>
-                            <label for="report-license" class="block text-sm font-medium text-gray-700 mb-1">License Number</label>
-                            <select id="report-license" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition" disabled></select>
+                            <label for="report-license" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">License Number</label>
+                            <select id="report-license" class="w-full p-3 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 dark:text-gray-100" disabled></select>
                         </div>
                         <div class="grid grid-cols-2 gap-4 md:col-span-1">
-                             <input type="date" id="truck-report-start-date" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
-                             <input type="date" id="truck-report-end-date" class="w-full p-3 bg-gray-100 border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                             <input type="date" id="truck-report-start-date" class="w-full p-3 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 dark:text-gray-100">
+                             <input type="date" id="truck-report-end-date" class="w-full p-3 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition text-gray-900 dark:text-gray-100">
                         </div>
                          <button id="generate-truck-report-btn" class="md:col-span-3 w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition">
                             Generate Truck Report
@@ -415,24 +415,24 @@
                     <div class="mb-4 p-4 bg-gray-50 rounded-lg">
                         <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
                             <div class="md:col-span-2">
-                                <label for="search-log" class="block text-sm font-medium text-gray-700">Search License</label>
-                                <input type="text" id="search-log" placeholder="e.g., 1234-5678" class="mt-1 w-full p-2 bg-white border-gray-300 rounded-lg">
+                            <label for="search-log" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Search License</label>
+                            <input type="text" id="search-log" placeholder="e.g., 1234-5678" class="mt-1 w-full p-2 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100">
                             </div>
                             <div>
-                                <label for="filter-contractor" class="block text-sm font-medium text-gray-700">Contractor</label>
-                                <select id="filter-contractor" class="mt-1 w-full p-2 bg-white border-gray-300 rounded-lg"></select>
+                                <label for="filter-contractor" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Contractor</label>
+                            <select id="filter-contractor" class="mt-1 w-full p-2 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100"></select>
                             </div>
                             <div>
-                                <label for="filter-source" class="block text-sm font-medium text-gray-700">Source</label>
-                                <select id="filter-source" class="mt-1 w-full p-2 bg-white border-gray-300 rounded-lg"></select>
+                                <label for="filter-source" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Source</label>
+                            <select id="filter-source" class="mt-1 w-full p-2 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100"></select>
                             </div>
                             <div>
-                                <label for="filter-destination" class="block text-sm font-medium text-gray-700">Destination</label>
-                                <select id="filter-destination" class="mt-1 w-full p-2 bg-white border-gray-300 rounded-lg"></select>
+                                <label for="filter-destination" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Destination</label>
+                            <select id="filter-destination" class="mt-1 w-full p-2 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100"></select>
                             </div>
                             <div>
-                                <label for="filter-status" class="block text-sm font-medium text-gray-700">Status</label>
-                                <select id="filter-status" class="mt-1 w-full p-2 bg-white border-gray-300 rounded-lg">
+                                <label for="filter-status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                            <select id="filter-status" class="mt-1 w-full p-2 bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100">
                                     <option value="">All Statuses</option>
                                     <option value="Dispatched">Dispatched</option>
                                     <option value="Verified">Verified</option>
@@ -443,18 +443,18 @@
                 </div>
 
                 <!-- Log Table -->
-                <div class="bg-white rounded-xl shadow-sm p-4 md:p-6 table-container">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6 table-container">
                     <table class="w-full text-left">
-                        <thead class="bg-gray-100">
+                        <thead class="bg-gray-100 dark:bg-gray-700">
                             <tr>
-                                <th class="p-3 text-sm font-semibold text-gray-600 rounded-l-lg">Date</th>
-                                <th class="p-3 text-sm font-semibold text-gray-600 text-left">Contractor</th>
-                                <th class="p-3 text-sm font-semibold text-gray-600 text-left">License</th>
-                                <th class="p-3 text-sm font-semibold text-gray-600 text-center">Capacity (m³)</th>
-                                <th class="p-3 text-sm font-semibold text-gray-600 text-left">Source</th>
-                                <th class="p-3 text-sm font-semibold text-gray-600">Destination</th>
-                                <th class="p-3 text-sm font-semibold text-gray-600">Shift</th>
-                                <th class="p-3 text-sm font-semibold text-gray-600 rounded-r-lg">Status</th>
+                                <th class="p-3 text-sm font-semibold text-gray-600 dark:text-gray-300 rounded-l-lg">Date</th>
+                                <th class="p-3 text-sm font-semibold text-gray-600 dark:text-gray-300 text-left">Contractor</th>
+                                <th class="p-3 text-sm font-semibold text-gray-600 dark:text-gray-300 text-left">License</th>
+                                <th class="p-3 text-sm font-semibold text-gray-600 dark:text-gray-300 text-center">Capacity (m³)</th>
+                                <th class="p-3 text-sm font-semibold text-gray-600 dark:text-gray-300 text-left">Source</th>
+                                <th class="p-3 text-sm font-semibold text-gray-600 dark:text-gray-300">Destination</th>
+                                <th class="p-3 text-sm font-semibold text-gray-600 dark:text-gray-300">Shift</th>
+                                <th class="p-3 text-sm font-semibold text-gray-600 dark:text-gray-300 rounded-r-lg">Status</th>
                             </tr>
                         </thead>
                         <tbody id="log-table-body">
