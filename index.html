@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Truck Dispatch Dashboard</title>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -237,8 +242,8 @@
                     <div class="grid md:grid-cols-3 gap-6 border-b pb-6">
                         <div class="md:col-span-1 flex flex-col items-center justify-center text-center p-4">
                             <svg class="w-24 h-24 text-blue-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                            <h3 class="font-semibold text-lg">Select Contractor</h3>
-                            <p class="text-sm text-gray-500">Choose the truck's contracting company.</p>
+                            <h3 class="font-semibold text-lg dark:text-white">Select Contractor</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Choose the truck's contracting company.</p>
                         </div>
                         <div class="md:col-span-2 space-y-4">
                             <div>
@@ -264,8 +269,8 @@
                     <div class="grid md:grid-cols-3 gap-6 border-b pb-6">
                         <div class="md:col-span-1 flex flex-col items-center justify-center text-center p-4">
                             <svg class="w-24 h-24 text-blue-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l5.447 2.724A1 1 0 0021 16.382V5.618a1 1 0 00-1.447-.894L15 7m-6 10h6"></path></svg>
-                            <h3 class="font-semibold text-lg">Select Journey</h3>
-                            <p class="text-sm text-gray-500">Define the loading source and final destination.</p>
+                            <h3 class="font-semibold text-lg dark:text-white">Select Journey</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Define the loading source and final destination.</p>
                         </div>
                         <div class="md:col-span-2 space-y-4">
                             <div>
@@ -287,8 +292,8 @@
                     <div class="grid md:grid-cols-3 gap-6">
                         <div class="md:col-span-1 flex flex-col items-center justify-center text-center p-4">
                             <svg class="w-24 h-24 text-blue-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <h3 class="font-semibold text-lg">Select Date & Shift</h3>
-                            <p class="text-sm text-gray-500">Choose the date and time of dispatch.</p>
+                            <h3 class="font-semibold text-lg dark:text-white">Select Date & Shift</h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Choose the date and time of dispatch.</p>
                         </div>
                         <div class="md:col-span-2 space-y-4">
                             <div>
@@ -384,7 +389,7 @@
                 <!-- Log Controls -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-semibold text-gray-900 flex items-center">
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
                             <svg class="w-6 h-6 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
@@ -392,7 +397,7 @@
                         </h2>
                     </div>
                     <div class="mt-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Data Management</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Data Management</h3>
                         <div class="flex gap-2">
                             <button id="generate-test-data" class="px-4 py-2 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition">
                                 Generate Test Data
@@ -412,7 +417,7 @@
                     </div>
                     
                     <!-- Search and Filter Section -->
-                    <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                    <div class="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                         <div class="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
                             <div class="md:col-span-2">
                             <label for="search-log" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Search License</label>

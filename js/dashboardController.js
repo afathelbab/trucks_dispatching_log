@@ -547,16 +547,16 @@ class DashboardController {
         }
         
         this.elements.logTableBody.innerHTML = filteredLogs.map(entry => `
-            <tr class="hover:bg-gray-50">
-                <td class="p-3 text-sm text-gray-900">${entry.date}</td>
-                <td class="p-3 text-sm text-gray-900">${entry.contractor}</td>
-                <td class="p-3 text-sm text-gray-900">${entry.license}</td>
-                <td class="p-3 text-sm text-gray-900 text-center">${entry.capacity || 'N/A'}</td>
-                <td class="p-3 text-sm text-gray-900">${entry.source}</td>
-                <td class="p-3 text-sm text-gray-900">${entry.destination}</td>
-                <td class="p-3 text-sm text-gray-900">${entry.shift}</td>
+            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td class="p-3 text-sm text-gray-900 dark:text-gray-100">${entry.date}</td>
+                <td class="p-3 text-sm text-gray-900 dark:text-gray-100">${entry.contractor}</td>
+                <td class="p-3 text-sm text-gray-900 dark:text-gray-100">${entry.license}</td>
+                <td class="p-3 text-sm text-gray-900 dark:text-gray-100 text-center">${entry.capacity || 'N/A'}</td>
+                <td class="p-3 text-sm text-gray-900 dark:text-gray-100">${entry.source}</td>
+                <td class="p-3 text-sm text-gray-900 dark:text-gray-100">${entry.destination}</td>
+                <td class="p-3 text-sm text-gray-900 dark:text-gray-100">${entry.shift}</td>
                 <td class="p-3 text-sm">
-                    <span class="px-2 py-1 rounded-full text-xs font-semibold ${entry.status === 'Verified' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                    <span class="px-2 py-1 rounded-full text-xs font-semibold ${entry.status === 'Verified' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200'}">
                         ${entry.status}
                     </span>
                 </td>
