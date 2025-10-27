@@ -16,14 +16,14 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
 </head>
-<body class="bg-gray-50 text-gray-800">
+    <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100">
     <!-- Header -->
-    <header class="bg-white shadow-sm border-b">
+    <header class="bg-white dark:bg-gray-800 shadow-sm border-b">
         <div class="container mx-auto px-4 py-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-2xl font-bold text-gray-900">Truck Dispatch Dashboard</h1>
-                    <p class="text-sm text-gray-600">Belayiem Petroleum Company - PETROBEL</p>
+                            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Truck Dispatch Dashboard</h1>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">Belayiem Petroleum Company - PETROBEL</p>
                 </div>
                 <div class="flex items-center space-x-4">
                     <div class="text-right">
@@ -50,7 +50,7 @@
     </header>
 
     <!-- Navigation Tabs -->
-    <nav class="bg-white border-b">
+    <nav class="bg-white dark:bg-gray-800 border-b">
         <div class="container mx-auto px-4">
             <div class="flex space-x-8">
                 <button data-tab="dashboard" class="tab-nav active py-4 px-1 border-b-2 font-medium text-sm border-blue-500 text-blue-600">
@@ -86,13 +86,13 @@
         <!-- Dashboard Tab -->
         <div id="dashboard-tab" class="tab-content">
             <!-- Dashboard Controls -->
-            <div class="mb-8 bg-white rounded-xl shadow-sm p-6">
+            <div class="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
                 <div class="flex flex-wrap items-center justify-between gap-4">
-                    <h2 class="text-xl font-semibold text-gray-900">Dashboard Controls</h2>
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Dashboard Controls</h2>
                     <div class="flex flex-wrap items-center gap-4">
                         <!-- Date Range Picker -->
                         <div class="flex items-center gap-2">
-                            <label class="text-sm font-medium text-gray-700">Date Range:</label>
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Date Range:</label>
                             <input type="date" id="dashboard-start-date" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                             <span class="text-gray-500">to</span>
                             <input type="date" id="dashboard-end-date" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
@@ -118,7 +118,7 @@
 
             <!-- Key Metrics Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
                     <div class="flex items-center">
                         <div class="p-3 bg-blue-100 rounded-lg">
                             <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -126,12 +126,12 @@
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Total Trucks</p>
-                            <p class="text-2xl font-semibold text-gray-900" id="total-trucks-metric">0</p>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Total Trucks</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white" id="total-trucks-metric">0</p>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
                     <div class="flex items-center">
                         <div class="p-3 bg-green-100 rounded-lg">
                             <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,12 +139,12 @@
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Total Capacity</p>
-                            <p class="text-2xl font-semibold text-gray-900" id="total-capacity-metric">0 m³</p>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Total Capacity</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white" id="total-capacity-metric">0 m³</p>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
                     <div class="flex items-center">
                         <div class="p-3 bg-yellow-100 rounded-lg">
                             <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,12 +152,12 @@
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Active Contractors</p>
-                            <p class="text-2xl font-semibold text-gray-900" id="active-contractors-metric">0</p>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Active Contractors</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white" id="active-contractors-metric">0</p>
                         </div>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
                     <div class="flex items-center">
                         <div class="p-3 bg-purple-100 rounded-lg">
                             <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,8 +165,8 @@
                             </svg>
                         </div>
                         <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600">Avg Daily Trips</p>
-                            <p class="text-2xl font-semibold text-gray-900" id="avg-daily-trips-metric">0</p>
+                            <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Avg Daily Trips</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white" id="avg-daily-trips-metric">0</p>
                         </div>
                     </div>
                 </div>
@@ -175,35 +175,35 @@
             <!-- Charts Section -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
                 <!-- Trend Chart -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Dispatch Trends</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Dispatch Trends</h3>
                     <div class="h-80">
                         <canvas id="dashboard-trend-chart"></canvas>
                     </div>
                 </div>
                 <!-- Sankey Chart -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Dispatch Flow</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Dispatch Flow</h3>
                     <div id="dashboard-sankey-chart" class="h-80"></div>
                 </div>
             </div>
 
             <!-- Breakdown Charts -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">By Contractor</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">By Contractor</h3>
                     <div class="h-64">
                         <canvas id="dashboard-contractor-chart"></canvas>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">By Source</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">By Source</h3>
                     <div class="h-64">
                         <canvas id="dashboard-source-chart"></canvas>
                     </div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">By Destination</h3>
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">By Destination</h3>
                     <div class="h-64">
                         <canvas id="dashboard-destination-chart"></canvas>
                     </div>
@@ -321,7 +321,7 @@
         <div id="reports-tab" class="tab-content hidden">
             <div class="space-y-8">
                 <!-- General Report Section -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
                     <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                         <svg class="w-6 h-6 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -347,7 +347,7 @@
                 </div>
                 
                 <!-- Truck Specific Reporting Section -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
                     <h2 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
                         <svg class="w-6 h-6 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
@@ -382,7 +382,7 @@
         <div id="log-tab" class="tab-content hidden">
             <div class="space-y-6">
                 <!-- Log Controls -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h2 class="text-xl font-semibold text-gray-900 flex items-center">
                             <svg class="w-6 h-6 mr-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
