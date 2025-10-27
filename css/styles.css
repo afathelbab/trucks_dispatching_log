@@ -66,16 +66,8 @@ header {
 }
 
 /* Form elements */
-input, select, textarea {
-    background-color: var(--bg-secondary);
-    color: var(--text-primary);
-    border-color: var(--border-color);
-}
-
-input:focus, select:focus, textarea:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
+/* Note: Form elements now use Tailwind classes for proper light/dark mode support */
+/* Form styling is handled inline via Tailwind utility classes to support dark mode */
 
 /* Buttons */
 button {
