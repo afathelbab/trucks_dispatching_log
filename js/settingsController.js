@@ -216,7 +216,7 @@ class SettingsController {
                 const trucks = stateManager.getTrucksForContractor(contractor);
                 html += `
                     <div class="mb-4 border-b pb-4">
-                        <h4 class="font-bold text-gray-900 dark:text-white mb-3 text-lg">${contractor}</h4>
+                        <h4 class="font-bold text-gray-900 mb-3 text-lg">${contractor}</h4>
                         <div class="space-y-2">
                             ${trucks.length > 0 ? trucks.map(truck => `
                                 <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
@@ -458,7 +458,7 @@ class SettingsController {
                 const destinations = stateManager.getDestinationsForContractor(contractor);
                 html += `
                     <div class="mb-4 border-b pb-4">
-                        <h4 class="font-bold text-gray-900 dark:text-white mb-3 text-lg">${contractor}</h4>
+                        <h4 class="font-bold text-gray-900 mb-3 text-lg">${contractor}</h4>
                         <div class="flex gap-4 mb-3">
                             <input type="text" id="destination-${contractor.replace(/\s/g, '-')}" placeholder="Enter destination" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
                             <button onclick="window.settingsController.addDestination('${contractor}')" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition">
