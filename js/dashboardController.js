@@ -41,19 +41,55 @@ class DashboardController {
 
             // Date and time display
             currentDate: document.getElementById('current-date'),
-            currentTime: document.getElementById('current-time')
+            currentTime: document.getElementById('current-time'),
+            
+            // Log table
+            logTableBody: document.getElementById('log-table-body'),
+            emptyLogMessage: document.getElementById('empty-log-message'),
+            searchLog: document.getElementById('search-log'),
+            filterContractor: document.getElementById('filter-contractor'),
+            filterSource: document.getElementById('filter-source'),
+            filterDestination: document.getElementById('filter-destination'),
+            filterStatus: document.getElementById('filter-status')
         };
     }
 
     attachEventListeners() {
         // Dashboard filter controls
-        this.elements.applyDashboardFilters.addEventListener('click', () => this.applyFilters());
+        if (this.elements.applyDashboardFilters) {
+            this.elements.applyDashboardFilters.addEventListener('click', () => this.applyFilters());
+        }
         
         // Auto-update when filters change
-        this.elements.dashboardStartDate.addEventListener('change', () => this.applyFilters());
-        this.elements.dashboardEndDate.addEventListener('change', () => this.applyFilters());
-        this.elements.dashboardContractorFilter.addEventListener('change', () => this.applyFilters());
-        this.elements.dashboardShiftFilter.addEventListener('change', () => this.applyFilters());
+        if (this.elements.dashboardStartDate) {
+            this.elements.dashboardStartDate.addEventListener('change', () => this.applyFilters());
+        }
+        if (this.elements.dashboardEndDate) {
+            this.elements.dashboardEndDate.addEventListener('change', () => this.applyFilters());
+        }
+        if (this.elements.dashboardContractorFilter) {
+            this.elements.dashboardContractorFilter.addEventListener('change', () => this.applyFilters());
+        }
+        if (this.elements.dashboardShiftFilter) {
+            this.elements.dashboardShiftFilter.addEventListener('change', () => this.applyFilters());
+        }
+
+        // Log table filters
+        if (this.elements.searchLog) {
+            this.elements.searchLog.addEventListener('input', () => this.refreshLogTable());
+        }
+        if (this.elements.filterContractor) {
+            this.elements.filterContractor.addEventListener('change', () => this.refreshLogTable());
+        }
+        if (this.elements.filterSource) {
+            this.elements.filterSource.addEventListener('change', () => this.refreshLogTable());
+        }
+        if (this.elements.filterDestination) {
+            this.elements.filterDestination.addEventListener('change', () => this.refreshLogTable());
+        }
+        if (this.elements.filterStatus) {
+            this.elements.filterStatus.addEventListener('change', () => this.refreshLogTable());
+        }
 
         // Update time display
         this.updateDateTime();
@@ -61,8 +97,14 @@ class DashboardController {
     }
 
     setupEventBusListeners() {
-        eventBus.on('dataUpdated', () => this.populateFilters());
-        eventBus.on('logUpdated', () => this.refreshDashboard());
+        eventBus.on('dataUpdated', () => {
+            this.populateFilters();
+            this.populateLogFilters();
+        });
+        eventBus.on('logUpdated', () => {
+            this.refreshDashboard();
+            this.refreshLogTable();
+        });
     }
 
     setDefaultDateRange() {
@@ -442,6 +484,84 @@ class DashboardController {
                 }
             }
         });
+    }
+    
+    populateLogFilters() {
+        if (!this.elements.filterContractor) return;
+        
+        const contractors = stateManager.getContractors();
+        this.elements.filterContractor.innerHTML = '<option value="">All Contractors</option>';
+        contractors.forEach(contractor => {
+            const option = document.createElement('option');
+            option.value = contractor;
+            option.textContent = contractor;
+            this.elements.filterContractor.appendChild(option);
+        });
+        
+        const sources = stateManager.getSources();
+        if (this.elements.filterSource) {
+            this.elements.filterSource.innerHTML = '<option value="">All Sources</option>';
+            sources.forEach(source => {
+                const option = document.createElement('option');
+                option.value = source;
+                option.textContent = source;
+                this.elements.filterSource.appendChild(option);
+            });
+        }
+        
+        const destinations = stateManager.getAllDestinations();
+        if (this.elements.filterDestination) {
+            this.elements.filterDestination.innerHTML = '<option value="">All Destinations</option>';
+            destinations.forEach(destination => {
+                const option = document.createElement('option');
+                option.value = destination;
+                option.textContent = destination;
+                this.elements.filterDestination.appendChild(option);
+            });
+        }
+    }
+    
+    refreshLogTable() {
+        if (!this.elements.logTableBody || !stateManager.dispatchLog) return;
+        
+        const filters = {
+            search: this.elements.searchLog ? this.elements.searchLog.value.toLowerCase() : '',
+            contractor: this.elements.filterContractor ? this.elements.filterContractor.value : '',
+            source: this.elements.filterSource ? this.elements.filterSource.value : '',
+            destination: this.elements.filterDestination ? this.elements.filterDestination.value : '',
+            status: this.elements.filterStatus ? this.elements.filterStatus.value : ''
+        };
+        
+        const filteredLogs = stateManager.getFilteredLogs(filters);
+        
+        if (filteredLogs.length === 0) {
+            this.elements.logTableBody.innerHTML = '';
+            if (this.elements.emptyLogMessage) {
+                this.elements.emptyLogMessage.classList.remove('hidden');
+            }
+            return;
+        }
+        
+        if (this.elements.emptyLogMessage) {
+            this.elements.emptyLogMessage.classList.add('hidden');
+        }
+        
+        this.elements.logTableBody.innerHTML = filteredLogs.map(entry => `
+            <tr class="hover:bg-gray-50">
+                <td class="p-3 text-sm text-gray-900">${entry.date}</td>
+                <td class="p-3 text-sm text-gray-900">${entry.contractor}</td>
+                <td class="p-3 text-sm text-gray-900">${entry.license}</td>
+                <td class="p-3 text-sm text-gray-900 text-center">${entry.capacity || 'N/A'}</td>
+                <td class="p-3 text-sm text-gray-900">${entry.source}</td>
+                <td class="p-3 text-sm text-gray-900">${entry.destination}</td>
+                <td class="p-3 text-sm text-gray-900">${entry.shift}</td>
+                <td class="p-3 text-sm">
+                    <span class="px-2 py-1 rounded-full text-xs font-semibold ${entry.status === 'Verified' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                        ${entry.status}
+                    </span>
+                </td>
+            </tr>
+        `).join('');
     }
 }
 

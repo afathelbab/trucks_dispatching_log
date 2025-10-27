@@ -67,7 +67,8 @@ class TabController {
                 // Reports functionality is already initialized
                 break;
             case 'log':
-                this.dashboardController.populateFilters();
+                this.dashboardController.populateLogFilters();
+                this.dashboardController.refreshLogTable();
                 break;
         }
     }
