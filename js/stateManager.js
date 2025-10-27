@@ -42,6 +42,13 @@ class StateManager {
             id: Date.now(),
             status: 'Dispatched'
         };
+        
+        // Format date as DD/MM/YYYY if it's in YYYY-MM-DD format
+        if (newEntry.date && newEntry.date.includes('-')) {
+            const [year, month, day] = newEntry.date.split('-');
+            newEntry.date = `${day}/${month}/${year}`;
+        }
+        
         this.dispatchLog.unshift(newEntry);
         this.saveLog();
     }

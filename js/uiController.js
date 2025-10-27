@@ -22,7 +22,7 @@ class UIController {
             sourceSelect: document.getElementById('source'),
             destinationSelect: document.getElementById('destination'),
             shiftSelect: document.getElementById('shift'),
-            dateInput: document.getElementById('date'),
+            dispatchDateInput: document.getElementById('dispatch-date'),
             
             // Buttons
             submitBtn: document.getElementById('submit-btn'),
@@ -146,8 +146,12 @@ class UIController {
 
         if (contractor === 'Petrotreatment') {
             this.elements.capacityInput.readOnly = false;
+            this.elements.capacityInput.classList.remove('bg-gray-200');
+            this.elements.capacityInput.classList.add('bg-white');
         } else {
             this.elements.capacityInput.readOnly = true;
+            this.elements.capacityInput.classList.remove('bg-white');
+            this.elements.capacityInput.classList.add('bg-gray-200');
         }
     }
 
@@ -157,10 +161,30 @@ class UIController {
         
         if (!contractor || !license) return;
 
-        const capacity = stateManager.getCapacityForTruck(contractor, license);
-        if (capacity !== null) {
-            this.elements.capacityInput.value = capacity;
+        // Only auto-fill capacity for Elsamy and Elbassyouny
+        if (contractor === 'Elsamy' || contractor === 'Elbassyouny') {
+            const capacity = stateManager.getCapacityForTruck(contractor, license);
+            if (capacity !== null && capacity !== undefined) {
+                this.elements.capacityInput.value = capacity;
+            }
+        } else if (contractor === 'Petrotreatment') {
+            // For Petrotreatment, clear the capacity to allow manual entry
+            this.elements.capacityInput.value = '';
         }
+    }
+    
+    populateLicenses(contractorName) {
+        if (!this.elements.licenseSelect) return;
+        
+        const trucks = stateManager.getTrucksForContractor(contractorName);
+        this.populateSelect(this.elements.licenseSelect, trucks.map(t => t.license), 'Select License Number');
+    }
+    
+    populateDestinations(contractorName) {
+        if (!this.elements.destinationSelect) return;
+        
+        const destinations = stateManager.getDestinationsForContractor(contractorName);
+        this.populateSelect(this.elements.destinationSelect, destinations, 'Select a Destination');
     }
 
     handleSubmit() {
@@ -174,7 +198,7 @@ class UIController {
 
     getFormData() {
         return {
-            date: this.elements.dateInput.value,
+            date: this.elements.dispatchDateInput.value,
             contractor: this.elements.contractorSelect.value,
             license: this.elements.licenseSelect.value,
             capacity: parseFloat(this.elements.capacityInput.value),
@@ -209,7 +233,11 @@ class UIController {
         if (this.elements.sourceSelect) this.elements.sourceSelect.value = '';
         if (this.elements.destinationSelect) this.elements.destinationSelect.value = '';
         if (this.elements.shiftSelect) this.elements.shiftSelect.value = '';
-        if (this.elements.dateInput) this.elements.dateInput.value = this.getCurrentDate();
+        if (this.elements.dispatchDateInput) this.elements.dispatchDateInput.value = this.getCurrentDate();
+        
+        // Reset license and destination disabled state
+        if (this.elements.licenseSelect) this.elements.licenseSelect.disabled = true;
+        if (this.elements.destinationSelect) this.elements.destinationSelect.disabled = true;
     }
 
     getCurrentDate() {
@@ -218,8 +246,8 @@ class UIController {
     }
 
     setInitialDate() {
-        if (this.elements.dateInput) {
-            this.elements.dateInput.value = this.getCurrentDate();
+        if (this.elements.dispatchDateInput) {
+            this.elements.dispatchDateInput.value = this.getCurrentDate();
         }
     }
 
@@ -265,13 +293,32 @@ class UIController {
         this.isDarkMode = !this.isDarkMode;
         this.applyTheme();
         this.saveThemePreference();
+        
+        // Toggle icon visibility
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+        
+        if (sunIcon && moonIcon) {
+            if (this.isDarkMode) {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+        }
     }
 
     applyTheme() {
         if (this.isDarkMode) {
             document.documentElement.classList.add('dark');
+            // Also add dark-theme class for CSS variables
+            document.documentElement.classList.add('dark-theme');
+            document.documentElement.classList.remove('light-theme');
         } else {
             document.documentElement.classList.remove('dark');
+            document.documentElement.classList.remove('dark-theme');
+            document.documentElement.classList.add('light-theme');
         }
     }
 
@@ -283,6 +330,19 @@ class UIController {
             this.isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
         }
         this.applyTheme();
+        
+        // Update icon visibility based on initial theme
+        const sunIcon = document.getElementById('sun-icon');
+        const moonIcon = document.getElementById('moon-icon');
+        if (sunIcon && moonIcon) {
+            if (this.isDarkMode) {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            } else {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            }
+        }
     }
 
     saveThemePreference() {

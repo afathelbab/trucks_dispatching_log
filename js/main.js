@@ -44,9 +44,14 @@ class App {
         
         // Initialize controllers
         this.settingsController = new SettingsController();
+        this.reportController = new ReportController();
         this.uiController = new UIController(this.settingsController);
         this.dashboardController = new DashboardController();
         this.tabController = new TabController(this.dashboardController, this.uiController);
+        
+        // Make controllers globally accessible for onclick handlers
+        window.settingsController = this.settingsController;
+        window.reportController = this.reportController;
         
         // Initialize state and UI
         stateManager.loadData();

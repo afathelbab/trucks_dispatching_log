@@ -12,15 +12,19 @@ class ReportController {
     initializeElements() {
         this.elements = {
             generateReportBtn: document.getElementById('generate-report-btn'),
-            generateTruckReportBtn: document.getElementById('generate-truck-report'),
-            reportContainer: document.getElementById('report-container'),
-            truckReportContainer: document.getElementById('truck-report-container')
+            generateTruckReportBtn: document.getElementById('generate-truck-report-btn'),
+            reportContainer: document.getElementById('report-output'),
+            truckReportContainer: document.getElementById('truck-report-output')
         };
     }
 
     attachEventListeners() {
         if (this.elements.generateReportBtn) {
             this.elements.generateReportBtn.addEventListener('click', () => this.generateMainReport());
+        }
+        
+        if (this.elements.generateTruckReportBtn) {
+            this.elements.generateTruckReportBtn.addEventListener('click', () => this.generateTruckReport());
         }
     }
 
@@ -35,11 +39,29 @@ class ReportController {
             return;
         }
 
+        const startDate = document.getElementById('report-start-date').value;
+        const endDate = document.getElementById('report-end-date').value;
+        
+        // Filter data by date range if provided
+        let filteredData = reportData;
+        if (startDate && endDate) {
+            filteredData = reportData.filter(entry => {
+                const entryDate = new Date(entry.date.split('/').reverse().join('-'));
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                return entryDate >= start && entryDate <= end;
+            });
+        }
+
         this.elements.generateReportBtn.disabled = true;
         this.elements.generateReportBtn.textContent = 'Generating...';
 
         try {
-            this.generateAndDisplayReport(reportData);
+            this.generateAndDisplayReport(filteredData);
+            const container = this.elements.reportContainer;
+            if (container) {
+                container.classList.remove('hidden');
+            }
         } catch (error) {
             console.error('Error generating report:', error);
             this.showError('Error generating report. Please try again.');
@@ -56,17 +78,43 @@ class ReportController {
             return;
         }
 
+        const contractor = document.getElementById('report-contractor').value;
+        const license = document.getElementById('report-license').value;
+        const startDate = document.getElementById('truck-report-start-date').value;
+        const endDate = document.getElementById('truck-report-end-date').value;
+        
+        // Filter data
+        let filteredData = reportData;
+        if (contractor) {
+            filteredData = filteredData.filter(entry => entry.contractor === contractor);
+        }
+        if (license) {
+            filteredData = filteredData.filter(entry => entry.license === license);
+        }
+        if (startDate && endDate) {
+            filteredData = filteredData.filter(entry => {
+                const entryDate = new Date(entry.date.split('/').reverse().join('-'));
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                return entryDate >= start && entryDate <= end;
+            });
+        }
+
         this.elements.generateTruckReportBtn.disabled = true;
         this.elements.generateTruckReportBtn.textContent = 'Generating...';
 
         try {
-            this.generateAndDisplayTruckReport(reportData);
+            this.generateAndDisplayTruckReport(filteredData);
+            const container = this.elements.truckReportContainer;
+            if (container) {
+                container.classList.remove('hidden');
+            }
         } catch (error) {
             console.error('Error generating truck report:', error);
             this.showError('Error generating truck report. Please try again.');
         } finally {
             this.elements.generateTruckReportBtn.disabled = false;
-            this.elements.generateTruckReportBtn.textContent = 'Generate';
+            this.elements.generateTruckReportBtn.textContent = 'Generate Truck Report';
         }
     }
 

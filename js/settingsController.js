@@ -12,22 +12,22 @@ class SettingsController {
     initializeElements() {
         this.elements = {
             // Settings tabs
-            settingsTabs: document.querySelectorAll('.settings-tab'),
-            settingsContents: document.querySelectorAll('.settings-content'),
+            settingsTabs: document.querySelectorAll('#settings-tabs button[data-tab]'),
+            settingsPanels: document.querySelectorAll('.settings-panel'),
             
             // Contractor management
-            contractorList: document.getElementById('contractor-list'),
+            contractorPanel: document.getElementById('contractors-panel'),
             addContractorBtn: document.getElementById('add-contractor-btn'),
             contractorNameInput: document.getElementById('contractor-name'),
             
             // Truck management
-            truckList: document.getElementById('truck-list'),
+            truckPanel: document.getElementById('trucks-panel'),
             addTruckBtn: document.getElementById('add-truck-btn'),
             truckLicenseInput: document.getElementById('truck-license'),
             truckCapacityInput: document.getElementById('truck-capacity'),
             
             // Source management
-            sourceList: document.getElementById('source-list'),
+            sourcePanel: document.getElementById('sources-panel'),
             addSourceBtn: document.getElementById('add-source-btn'),
             sourceNameInput: document.getElementById('source-name'),
             
@@ -63,7 +63,12 @@ class SettingsController {
 
         // Data management
         if (this.elements.generateTestDataBtn) {
-            this.elements.generateTestDataBtn.addEventListener('click', () => stateManager.generateTestData());
+            this.elements.generateTestDataBtn.addEventListener('click', () => {
+                stateManager.generateTestData();
+                this.showSuccess('Test data has been generated successfully!');
+                eventBus.emit('logUpdated');
+                eventBus.emit('dataUpdated');
+            });
         }
         
         if (this.elements.clearDataBtn) {
@@ -81,6 +86,11 @@ class SettingsController {
         if (this.elements.importFileInput) {
             this.elements.importFileInput.addEventListener('change', (e) => this.handleFileImport(e));
         }
+        
+        // Initialize panel content for the first tab
+        setTimeout(() => {
+            this.refreshSettings();
+        }, 100);
     }
 
     setupEventBusListeners() {
@@ -91,7 +101,6 @@ class SettingsController {
         // Update tab navigation
         this.elements.settingsTabs.forEach(tab => {
             const isActive = tab.dataset.tab === tabId;
-            tab.classList.toggle('active', isActive);
             tab.classList.toggle('border-indigo-500', isActive);
             tab.classList.toggle('text-indigo-600', isActive);
             tab.classList.toggle('border-transparent', !isActive);
@@ -99,78 +108,124 @@ class SettingsController {
         });
 
         // Update tab content
-        this.elements.settingsContents.forEach(content => {
-            const isTargetTab = content.id === `${tabId}-panel`;
-            content.classList.toggle('hidden', !isTargetTab);
+        this.elements.settingsPanels.forEach(panel => {
+            const isTargetTab = panel.id === `${tabId}-panel`;
+            panel.classList.toggle('hidden', !isTargetTab);
         });
+        
+        // Refresh the panel content
+        this.refreshSettings();
     }
 
     refreshSettings() {
-        this.refreshContractorList();
-        this.refreshTruckList();
-        this.refreshSourceList();
+        this.refreshContractorPanel();
+        this.refreshTruckPanel();
+        this.refreshSourcePanel();
     }
 
-    refreshContractorList() {
-        if (!this.elements.contractorList) return;
+    refreshContractorPanel() {
+        if (!this.elements.contractorPanel) return;
         
         const contractors = stateManager.getContractors();
-        this.elements.contractorList.innerHTML = contractors.map(contractor => `
-            <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <span class="font-medium text-gray-900 dark:text-white">${contractor}</span>
-                <div class="flex space-x-2">
-                    <button onclick="settingsController.editContractor('${contractor}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">Edit</button>
-                    <button onclick="settingsController.deleteContractor('${contractor}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Delete</button>
-                </div>
+        
+        let html = `
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Contractors</h3>
+            <div class="flex gap-4 mb-4">
+                <input type="text" id="contractor-name" placeholder="Enter contractor name" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                <button id="add-contractor-btn" class="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 transition">
+                    Add Contractor
+                </button>
             </div>
-        `).join('');
+            <div class="space-y-2 max-h-96 overflow-y-auto">
+        `;
+        
+        if (contractors.length === 0) {
+            html += `<p class="text-gray-500 text-center py-4">No contractors added yet.</p>`;
+        } else {
+            html += contractors.map(contractor => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <span class="font-medium text-gray-900 dark:text-white">${contractor}</span>
+                    <div class="flex space-x-2">
+                        <button onclick="window.settingsController.deleteContractor('${contractor}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        html += `</div>`;
+        this.elements.contractorPanel.innerHTML = html;
+        
+        // Re-attach event listeners
+        const addBtn = document.getElementById('add-contractor-btn');
+        if (addBtn) {
+            addBtn.addEventListener('click', () => this.addContractor());
+        }
     }
 
-    refreshTruckList() {
-        if (!this.elements.truckList) return;
+    refreshTruckPanel() {
+        if (!this.elements.truckPanel) return;
         
         const contractors = stateManager.getContractors();
-        let html = '';
         
-        contractors.forEach(contractor => {
-            const trucks = stateManager.getTrucksForContractor(contractor);
-            if (trucks.length > 0) {
+        let html = `
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Trucks</h3>
+            <div class="space-y-4">
+        `;
+        
+        if (contractors.length === 0) {
+            html += `<p class="text-gray-500 text-center py-4">No contractors available. Add a contractor first.</p>`;
+        } else {
+            contractors.forEach(contractor => {
+                const trucks = stateManager.getTrucksForContractor(contractor);
                 html += `
                     <div class="mb-4">
                         <h4 class="font-semibold text-gray-900 dark:text-white mb-2">${contractor}</h4>
                         <div class="space-y-2">
-                            ${trucks.map(truck => `
+                            ${trucks.length > 0 ? trucks.map(truck => `
                                 <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
-                                    <span class="text-sm text-gray-900 dark:text-white">${truck.license} (${truck.capacity || 'N/A'} m³)</span>
-                                    <div class="flex space-x-2">
-                                        <button onclick="settingsController.editTruck('${contractor}', '${truck.license}')" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-xs">Edit</button>
-                                        <button onclick="settingsController.deleteTruck('${contractor}', '${truck.license}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-xs">Delete</button>
-                                    </div>
+                                    <span class="text-sm text-gray-900 dark:text-white">${truck.license} (${truck.capacity !== null && truck.capacity !== undefined ? truck.capacity + ' m³' : 'N/A'})</span>
+                                    <button onclick="window.settingsController.deleteTruck('${contractor}', '${truck.license}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-xs">Delete</button>
                                 </div>
-                            `).join('')}
+                            `).join('') : '<p class="text-sm text-gray-500 italic">No trucks for this contractor</p>'}
                         </div>
                     </div>
                 `;
-            }
-        });
+            });
+        }
         
-        this.elements.truckList.innerHTML = html;
+        html += `</div>`;
+        this.elements.truckPanel.innerHTML = html;
     }
 
-    refreshSourceList() {
-        if (!this.elements.sourceList) return;
+    refreshSourcePanel() {
+        if (!this.elements.sourcePanel) return;
         
         const sources = stateManager.getSources();
-        this.elements.sourceList.innerHTML = sources.map(source => `
-            <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <span class="font-medium text-gray-900 dark:text-white">${source}</span>
-                <button onclick="settingsController.deleteSource('${source}')" class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">Delete</button>
-            </div>
-        `).join('');
+        
+        let html = `
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Sources</h3>
+            <div class="space-y-2 max-h-96 overflow-y-auto">
+        `;
+        
+        if (sources.length === 0) {
+            html += `<p class="text-gray-500 text-center py-4">No sources added yet.</p>`;
+        } else {
+            html += sources.map(source => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <span class="font-medium text-gray-900 dark:text-white">${source}</span>
+                </div>
+            `).join('');
+        }
+        
+        html += `</div>`;
+        this.elements.sourcePanel.innerHTML = html;
     }
 
     addContractor() {
-        const name = this.elements.contractorNameInput.value.trim();
+        const input = document.getElementById('contractor-name');
+        if (!input) return;
+        
+        const name = input.value.trim();
         if (!name) {
             this.showError('Please enter a contractor name.');
             return;
@@ -182,13 +237,19 @@ class SettingsController {
         }
 
         stateManager.addContractor(name);
-        this.elements.contractorNameInput.value = '';
+        input.value = '';
         this.showSuccess('Contractor added successfully!');
+        this.refreshSettings();
     }
 
     addTruck() {
-        const license = this.elements.truckLicenseInput.value.trim();
-        const capacity = parseFloat(this.elements.truckCapacityInput.value);
+        const licenseInput = document.getElementById('truck-license');
+        const capacityInput = document.getElementById('truck-capacity');
+        
+        if (!licenseInput || !capacityInput) return;
+        
+        const license = licenseInput.value.trim();
+        const capacity = parseFloat(capacityInput.value);
         
         if (!license) {
             this.showError('Please enter a truck license.');
@@ -208,13 +269,17 @@ class SettingsController {
         }
 
         stateManager.addTruck(contractors[0], license, capacity);
-        this.elements.truckLicenseInput.value = '';
-        this.elements.truckCapacityInput.value = '';
+        licenseInput.value = '';
+        capacityInput.value = '';
         this.showSuccess('Truck added successfully!');
+        this.refreshSettings();
     }
 
     addSource() {
-        const name = this.elements.sourceNameInput.value.trim();
+        const input = document.getElementById('source-name');
+        if (!input) return;
+        
+        const name = input.value.trim();
         if (!name) {
             this.showError('Please enter a source name.');
             return;
@@ -230,8 +295,25 @@ class SettingsController {
         stateManager.appData.sources = sources;
         stateManager.saveData();
         
-        this.elements.sourceNameInput.value = '';
+        input.value = '';
         this.showSuccess('Source added successfully!');
+        this.refreshSettings();
+    }
+    
+    deleteContractor(name) {
+        if (confirm(`Are you sure you want to delete contractor "${name}"?`)) {
+            stateManager.deleteContractor(name);
+            this.showSuccess('Contractor deleted successfully!');
+            this.refreshSettings();
+        }
+    }
+    
+    deleteTruck(contractor, license) {
+        if (confirm(`Are you sure you want to delete truck "${license}"?`)) {
+            stateManager.deleteTruck(contractor, license);
+            this.showSuccess('Truck deleted successfully!');
+            this.refreshSettings();
+        }
     }
 
     generateTestData() {
